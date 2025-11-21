@@ -35,11 +35,41 @@ std::thread t([]{
 3. **03_jthread.cpp**: `std::thread`와 `std::jthread`의 차이 비교.
 
 ## 4. 빌드 및 실행 방법
-터미널(Developer PowerShell)에서 `Week1` 폴더로 이동 후:
+**중요**: 터미널을 새로 열었다면 먼저 루트 폴더(`E:\repos\C++_Study`)의 `setup_env.bat`를 실행해주세요! (CMake 경로 설정)
+
+### 방법 A: CMake 사용 (권장)
+터미널에서 `Week1` 폴더로 이동 후:
 ```powershell
 mkdir build
 cd build
 cmake ..
 cmake --build .
 ```
+
+### 방법 B: 수동 빌드 스크립트 (CMake가 안될 때)
+터미널에서 `Week1` 폴더로 이동 후:
+```powershell
+.\build_manual.bat
+```
+
 생성된 실행 파일들을 실행해보세요!
+
+---
+
+## 5. PowerShell 기초 (Zsh 사용자를 위한 팁)
+윈도우 PowerShell은 리눅스 쉘과 비슷하면서도 조금 다릅니다.
+
+| 동작 | Zsh / Bash | PowerShell | 비고 |
+| :--- | :--- | :--- | :--- |
+| **현재 경로** | `pwd` | `pwd` 또는 `Get-Location` | 동일하게 작동 |
+| **목록 보기** | `ls -al` | `ls`, `dir` | 옵션은 다름 (`ls -Force`로 숨김파일 확인) |
+| **화면 지우기** | `clear` | `cls`, `clear` | 동일하게 작동 |
+| **파일 복사** | `cp a b` | `cp`, `copy` | 동일하게 작동 |
+| **파일 이동** | `mv a b` | `mv`, `move` | 동일하게 작동 |
+| **파일 삭제** | `rm a` | `rm`, `del` | 동일하게 작동 |
+| **스크립트 실행** | `./script.sh` | `.\script.bat` | **역슬래시(\) 주의!** |
+| **내용 보기** | `cat file` | `cat`, `type` | 동일하게 작동 |
+| **관리자 권한** | `sudo ...` | (없음) | 관리자 권한으로 터미널을 새로 열어야 함 |
+
+> **Tip**: 탭(Tab) 키를 누르면 자동 완성이 되며, 계속 누르면 가능한 파일들이 순환됩니다.
+

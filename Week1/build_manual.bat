@@ -8,7 +8,7 @@ if not exist build mkdir build
 
 echo.
 echo [1/3] Compiling 01_SmartPointers...
-cl /EHsc /std:c++latest /Fe:build/01_SmartPointers.exe src/01_smart_pointers.cpp
+cl /EHsc /std:c++latest /utf-8 /Fe:build/01_SmartPointers.exe src/01_smart_pointers.cpp
 if %errorlevel% neq 0 (
     echo [FAIL] 01_SmartPointers
 ) else (
@@ -17,7 +17,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo [2/3] Compiling 02_Lambdas...
-cl /EHsc /std:c++latest /Fe:build/02_Lambdas.exe src/02_lambdas.cpp
+cl /EHsc /std:c++latest /utf-8 /Fe:build/02_Lambdas.exe src/02_lambdas.cpp
 if %errorlevel% neq 0 (
     echo [FAIL] 02_Lambdas
 ) else (
@@ -26,7 +26,8 @@ if %errorlevel% neq 0 (
 
 echo.
 echo [3/3] Compiling 03_Jthread...
-cl /EHsc /std:c++latest /Fe:build/03_Jthread.exe src/03_jthread.cpp
+cl /EHsc /std:c++latest /utf-8 /Fe:build/03_Jthread.exe src/03_jthread.cpp
+
 if %errorlevel% neq 0 (
     echo [FAIL] 03_Jthread
 ) else (
