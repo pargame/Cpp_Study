@@ -27,7 +27,24 @@ std::thread t([]{
 기존 `std::thread`는 소멸 전에 반드시 `join()`이나 `detach()`를 호출해야 했습니다. 안 하면 프로그램이 죽습니다.
 `std::jthread`는 소멸자에서 자동으로 `join()`을 호출해줍니다. (RAII 패턴의 적용)
 
-## 3. 실습 가이드
+## 3. 자주 하는 실수 (Common Pitfalls)
+초심자가 가장 많이 겪는 문제들입니다. 꼭 읽어보세요!
+
+### 1. 스마트 포인터의 순환 참조 (Circular Reference)
+`shared_ptr`끼리 서로를 가리키면 영원히 해제되지 않습니다.
+- **해결**: 둘 중 하나는 `std::weak_ptr`를 써야 합니다.
+
+### 2. 람다의 댕글링 참조 (Dangling Reference)
+`[&]`로 모든 변수를 참조 캡처했는데, 쓰레드가 실행될 때 그 변수가 이미 사라졌다면?
+- **증상**: 알 수 없는 값 출력 또는 크래시.
+- **해결**: 쓰레드 수명보다 변수 수명이 짧다면, `[=]`(값 복사)를 쓰거나 변수 수명을 늘려야 합니다.
+
+### 3. `join()` 까먹기
+`std::thread`를 만들고 `join()`도 `detach()`도 안 하면, 프로그램 종료 시 `std::terminate()`가 호출되어 강제 종료됩니다.
+- **해결**: `std::jthread`를 쓰면 해결!
+
+## 4. 실습 가이드
+
 `Week1/src` 폴더에 있는 예제 코드들을 분석하고 실행해봅니다.
 
 1. **01_smart_pointers.cpp**: `unique_ptr`와 `shared_ptr`의 차이점 이해하기.
@@ -37,22 +54,32 @@ std::thread t([]{
 ## 4. 빌드 및 실행 방법
 **중요**: 터미널을 새로 열었다면 먼저 루트 폴더(`E:\repos\C++_Study`)의 `setup_env.bat`를 실행해주세요! (CMake 경로 설정)
 
-### 방법 A: CMake 사용 (권장)
-터미널에서 `Week1` 폴더로 이동 후:
+### 방법 A: CMake 사용 (자동 스크립트)
+가장 추천하는 방법입니다. 환경 설정부터 빌드까지 한 번에 해줍니다.
 ```powershell
-mkdir build
-cd build
-cmake ..
-cmake --build .
+.\build_cmake.bat
 ```
 
-### 방법 B: 수동 빌드 스크립트 (CMake가 안될 때)
-터미널에서 `Week1` 폴더로 이동 후:
+### 방법 B: 수동 빌드 (CMake 없이)
 ```powershell
 .\build_manual.bat
 ```
 
-생성된 실행 파일들을 실행해보세요!
+## 5. 실행 방법 (터미널)
+빌드가 성공했다면, 터미널에서 생성된 프로그램을 실행할 수 있습니다.
+
+**CMake로 빌드했을 경우 (Debug 폴더)**:
+```powershell
+.\build\Debug\01_SmartPointers.exe
+.\build\Debug\02_Lambdas.exe
+.\build\Debug\03_Jthread.exe
+```
+
+**수동 빌드했을 경우 (build 폴더 바로 아래)**:
+```powershell
+.\build\01_SmartPointers.exe
+```
+
 
 ---
 
@@ -62,7 +89,9 @@ cmake --build .
 | 동작 | Zsh / Bash | PowerShell | 비고 |
 | :--- | :--- | :--- | :--- |
 | **현재 경로** | `pwd` | `pwd` 또는 `Get-Location` | 동일하게 작동 |
+| **경로 이동** | `cd path` | `cd`, `Set-Location` | 동일하게 작동 |
 | **목록 보기** | `ls -al` | `ls`, `dir` | 옵션은 다름 (`ls -Force`로 숨김파일 확인) |
+
 | **화면 지우기** | `clear` | `cls`, `clear` | 동일하게 작동 |
 | **파일 복사** | `cp a b` | `cp`, `copy` | 동일하게 작동 |
 | **파일 이동** | `mv a b` | `mv`, `move` | 동일하게 작동 |

@@ -1,0 +1,30 @@
+#include <iostream>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+#pragma comment(lib, "ws2_32.lib")
+
+int main() {
+    WSAStartup(MAKEWORD(2, 2), &WSADATA());
+
+    const char* ip_str = "127.0.0.1";
+    sockaddr_in sa;
+    
+    // 문자열 IP -> 이진 데이터 변환 (inet_pton)
+    // Presentation TO Network
+    if (inet_pton(AF_INET, ip_str, &(sa.sin_addr)) == 1) {
+        std::cout << "Converted " << ip_str << " to binary successfully.\n";
+    } else {
+        std::cerr << "Invalid IP address.\n";
+    }
+
+    // 다시 문자열로 변환 (inet_ntop)
+    // Network TO Presentation
+    char buffer[INET_ADDRSTRLEN];
+    if (inet_ntop(AF_INET, &(sa.sin_addr), buffer, INET_ADDRSTRLEN)) {
+        std::cout << "Converted back to string: " << buffer << "\n";
+    }
+
+    WSACleanup();
+    return 0;
+}
