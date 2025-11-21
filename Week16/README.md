@@ -1,23 +1,61 @@
 # 16주차: 중간 점검 및 리팩토링
 
 "코드가 너무 지저분해요. 정리 좀 하고 가죠!"
-지난주에 만든 채팅 서버, 한 파일에 다 때려 박아서 정신없으셨죠?
+지난주에 만든 채팅 서버, `main` 함수 하나에 모든 로직이 들어있어 유지보수가 힘들었죠?
 이번 주에는 **객체 지향적 설계(OOP)**를 적용해 코드를 깔끔하게 분리해봅니다.
 
-## 1. 리팩토링 목표
-- **`ChatServer` 클래스**: 서버의 생명주기(Start, Stop)와 메인 루프 관리.
-- **`Session` 클래스**: 클라이언트 한 명의 정보(소켓, 주소, 버퍼) 관리.
-- **`PacketHandler`**: 메시지 처리 로직 분리.
+## 1. 학습 목표
+- **관심사의 분리 (Separation of Concerns)**: 네트워크 I/O, 세션 관리, 메시지 처리를 분리합니다.
+- **RAII 패턴 적용**: 소켓 리소스 관리를 클래스 소멸자에 위임하여 누수를 방지합니다.
+- **Modern C++ 활용**: `std::shared_ptr`, `std::vector` 등을 적극 활용합니다.
 
-## 2. 핵심 개념
-- **단일 책임 원칙 (SRP)**: 클래스는 하나의 책임만 가져야 한다.
-- **RAII**: 소켓 같은 리소스는 객체가 소멸될 때 자동으로 정리되어야 한다.
-
-## 3. 실습 가이드
-1. **01_refactored_server.cpp**: 깔끔하게 정리된 채팅 서버 코드.
-   - `main` 함수가 아주 심플해진 것을 확인해보세요.
-
-## 4. 빌드 및 실행
-```powershell
-.\build_cmake.bat
+## 2. 리팩토링 설계
+### 2.1. 클래스 구조
+```mermaid
+classDiagram
+    class ChatServer {
+        -SOCKET listen_sock
+        -vector~shared_ptr~Session~~ sessions
+        +start()
+        +run()
+        -accept_client()
+        -broadcast()
+    }
+    class Session {
+        -SOCKET sock
+        -sockaddr_in addr
+        +send_msg()
+        +socket()
+    }
+    ChatServer "1" *-- "*" Session : manages
 ```
+
+- **`ChatServer`**: 서버의 생명주기(Start, Stop)와 메인 루프(`select`)를 담당합니다.
+- **`Session`**: 클라이언트 한 명의 상태(소켓, IP주소, 버퍼 등)를 관리합니다.
+
+## 3. 핵심 개념: RAII (Resource Acquisition Is Initialization)
+C++에서는 자원의 획득과 해제를 객체의 생성/소멸과 일치시키는 것이 중요합니다.
+```cpp
+class Session {
+public:
+    ~Session() {
+        if (sock_ != INVALID_SOCKET) closesocket(sock_); // 소멸자에서 자동 정리
+    }
+};
+```
+이렇게 하면 예외가 발생하거나 함수를 빠져나갈 때 별도로 `closesocket`을 호출하지 않아도 안전합니다.
+
+## 4. Common Pitfalls (흔한 실수)
+> [!CAUTION]
+> **1. 스마트 포인터 순환 참조 (Circular Reference)**
+> 만약 `Session`이 `ChatServer`를 `shared_ptr`로 들고 있고, `ChatServer`도 `Session`을 `shared_ptr`로 들고 있다면?
+> 서로가 서로를 놓아주지 않아 메모리 누수가 발생합니다. 이럴 땐 `weak_ptr`를 사용해야 합니다.
+
+> [!TIP]
+> **2. 복사 비용 최소화**
+> `broadcast` 함수에서 메시지(`std::string`)를 값으로 전달하면 매번 복사가 일어납니다.
+> `const std::string&` (const reference)를 사용하여 복사 비용을 줄이세요.
+
+## 5. 실습 가이드
+1.  **01_refactored_server.cpp**: 리팩토링된 코드를 분석합니다.
+2.  **직접 해보기**: 기존 Week 15 코드를 보면서 직접 클래스로 나누어 보세요.

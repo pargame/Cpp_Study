@@ -1,17 +1,39 @@
-# 21주차: Windows IOCP (I/O Completion Port)
+# 21주차: Windows IOCP (I/O Completion Port) 이론
 
 "윈도우 서버의 끝판왕."
-수만 명의 동시 접속을 처리하려면 `select`로는 어림도 없습니다. **IOCP**는 OS가 I/O 완료를 직접 통지해주는 가장 효율적인 모델입니다.
+수만 명의 동시 접속을 처리하려면 `select`로는 어림도 없습니다.
+**IOCP**는 OS 커널 레벨에서 지원하는 가장 효율적인 비동기 I/O 모델입니다.
 
-## 1. 핵심 개념
-- **Proactor Pattern**: "이거 다 되면 알려줘." (미리 버퍼를 던져줌)
-- **Completion Port**: 완료된 작업들이 쌓이는 큐.
-- **Worker Threads**: CP를 감시하다가 완료된 작업이 있으면 꺼내서 처리.
+## 1. 학습 목표
+- **Proactor 패턴**: "완료되면 알려줘" 방식의 비동기 처리를 이해합니다.
+- **Completion Port**: 작업 완료 통지를 받는 항구(Port)의 개념을 익힙니다.
+- **Overlapped I/O**: 중첩 입출력 구조체의 역할을 이해합니다.
 
-## 2. 실습 가이드
-1. **01_iocp_basic.cpp**: IOCP 객체 생성 및 작업 큐잉 테스트 (네트워크 없이).
+## 2. 핵심 이론
+### 2.1. Reactor vs Proactor
+- **Reactor (Select/Epoll)**: "지금 읽을 데이터가 있어?" -> "응 있어" -> (내가 직접 읽음)
+- **Proactor (IOCP)**: "이 버퍼에 데이터 좀 읽어놔" -> (OS가 읽음) -> "다 읽었어" -> (나는 결과만 확인)
 
-## 3. 빌드 및 실행
-```powershell
-.\build_cmake.bat
-```
+### 2.2. IOCP 동작 원리
+1.  **Completion Queue**: 완료된 작업들이 쌓이는 큐입니다. (OS 관리)
+2.  **Worker Threads**: `GetQueuedCompletionStatus` 함수를 호출하여 큐에서 작업을 꺼내갑니다.
+3.  **LIFO 특성**: 대기 중인 쓰레드 중 가장 마지막에 들어온 놈을 먼저 깨워 문맥 교환(Context Switch)을 줄입니다.
+
+## 3. 주요 함수
+- `CreateIoCompletionPort`: CP 생성 및 소켓 연결.
+- `GetQueuedCompletionStatus`: 완료된 작업 꺼내기 (Blocking).
+- `PostQueuedCompletionStatus`: 사용자 정의 작업을 큐에 넣기 (쓰레드 간 통신용으로도 씀).
+
+## 4. Common Pitfalls (흔한 실수)
+> [!IMPORTANT]
+> **1. Overlapped 구조체 유지**
+> 비동기 작업(`WSARecv`, `WSASend`)을 요청할 때 넘겨준 `OVERLAPPED` 구조체는 **작업이 끝날 때까지 절대 메모리에서 해제되거나 이동되면 안 됩니다.**
+> 보통 `Session` 객체의 멤버 변수로 포함시켜 수명을 같이하게 합니다.
+
+> [!TIP]
+> **2. 쓰레드 개수**
+> IOCP 워커 쓰레드는 몇 개가 적당할까요?
+> 보통 **CPU 코어 수 * 2** 또는 **코어 수 + 1**을 권장합니다. 너무 많으면 컨텍스트 스위칭 비용이 커집니다.
+
+## 5. 실습
+1.  **01_iocp_basic.cpp**: 네트워크 없이 IOCP 큐에 작업을 넣고 빼는 기본 동작 실습.

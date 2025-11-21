@@ -1,23 +1,65 @@
-# 15주차: [프로젝트] 1:N 채팅 서버
+# 15주차: [프로젝트] 1:N 채팅 서버 (Select 기반)
 
 "이제 진짜 채팅방을 만들어봅시다!"
 지금까지 배운 `select` 모델과 `std::vector`를 활용해 다자간 채팅 서버를 만듭니다.
+단순한 에코 서버를 넘어, **브로드캐스팅(Broadcasting)** 로직을 구현하는 것이 핵심입니다.
 
-## 1. 기능 명세
-- **입장**: 클라이언트가 접속하면 "Welcome" 메시지 전송.
-- **채팅**: 한 명이 말하면 다른 모든 사람에게 브로드캐스팅(Broadcast).
-- **퇴장**: 나간 사람을 목록에서 제거.
+## 1. 학습 목표
+- **다중 접속 처리**: 여러 클라이언트의 연결을 동시에 유지하고 관리합니다.
+- **브로드캐스팅**: 한 클라이언트가 보낸 메시지를 다른 모든 클라이언트에게 전달합니다.
+- **소켓 생명주기**: 접속부터 종료까지의 흐름을 정확히 제어합니다.
 
-## 2. 구현 포인트
-- `std::vector<SOCKET>`으로 접속자 목록 관리.
-- `select`로 모든 소켓 감시.
-- 메시지를 받으면 루프를 돌며 `send` (나 자신 제외).
+## 2. 핵심 이론: Select 모델의 한계와 활용
+`select` 모델은 소켓 셋(`fd_set`)을 매번 초기화하고 커널에 복사해야 하므로 성능상 한계가 있습니다.
+하지만 **구현이 직관적이고 이식성이 좋아** 간단한 서버나 학습용으로는 아주 훌륭합니다.
 
-## 3. 실습 가이드
-1. **01_chat_server.cpp**: 완성된 채팅 서버 코드.
-2. **테스트 방법**: `Week12`의 `EchoClient.exe`를 여러 개 켜서 접속해보세요.
-
-## 4. 빌드 및 실행
-```powershell
-.\build_cmake.bat
+### 2.1. 브로드캐스팅 로직
+```cpp
+for (SOCKET s : connected_clients) {
+    if (s != sender_socket) { // 보낸 사람에게는 다시 보내지 않음 (선택 사항)
+        send(s, message, len, 0);
+    }
+}
 ```
+
+## 3. 구현 가이드
+### 3.1. 주요 자료구조
+- `std::vector<SOCKET> reads`: 현재 접속 중인 모든 소켓(Listen 소켓 포함)을 저장합니다.
+- `fd_set`: `select` 함수에 넘겨줄 소켓 집합입니다.
+
+### 3.2. 단계별 로직
+1.  **초기화**: `WSAStartup`, `socket`, `bind`, `listen`.
+2.  **소켓 등록**: `listen_sock`을 `reads` 벡터에 추가.
+3.  **루프 진입**:
+    -   `fd_set` 초기화 (`FD_ZERO`).
+    -   `reads` 벡터의 소켓들을 `fd_set`에 등록 (`FD_SET`).
+    -   `select` 호출 (대기).
+4.  **이벤트 처리**:
+    -   **Listen 소켓 이벤트**: `accept`로 새 클라이언트 입장 -> `reads`에 추가.
+    -   **일반 소켓 이벤트**: `recv`로 데이터 수신.
+        -   데이터 > 0: `broadcast` 함수 호출.
+        -   데이터 <= 0: 연결 종료 (`closesocket`) 및 `reads`에서 제거.
+
+## 4. Common Pitfalls (흔한 실수)
+> [!WARNING]
+> **1. 벡터 순회 중 삭제 (Iterator Invalidated)**
+> `std::vector`를 `for`문으로 돌면서 `erase`를 하면 반복자(iterator)나 인덱스가 꼬입니다.
+> ```cpp
+> // Bad
+> for (int i=0; i<reads.size(); ++i) {
+>     if (disconnected) reads.erase(reads.begin() + i); // i가 건너뛰어짐!
+> }
+> 
+> // Good
+> reads.erase(reads.begin() + i);
+> i--; // 인덱스 보정
+> ```
+
+> [!WARNING]
+> **2. FD_SETSIZE 제한**
+> 윈도우의 `select`는 기본적으로 64개의 소켓만 관리할 수 있습니다. (`winsock2.h` 헤더 포함 전 `#define FD_SETSIZE 1024` 등으로 늘릴 수 있음)
+
+## 5. 실습 및 테스트
+1.  **빌드**: `build_cmake.bat` 실행.
+2.  **서버 실행**: `.\Debug\01_ChatServer.exe`
+3.  **클라이언트 실행**: `Week12`의 `EchoClient.exe`를 2~3개 실행하여 서로 대화가 되는지 확인합니다.

@@ -1,16 +1,57 @@
 # 19주차: 세션 관리 (Session Management)
 
 "유저가 로그인했는지 어떻게 알죠?"
-단순한 소켓 연결을 넘어, 유저의 상태(로그인, 로비, 게임 중)를 관리하는 **세션** 개념을 배웁니다.
+단순한 소켓 연결(`SOCKET`)은 물리적인 연결일 뿐입니다.
+이 연결이 "누구"인지, "어떤 상태"인지를 관리하는 논리적인 객체가 바로 **세션(Session)**입니다.
 
-## 1. 핵심 개념
-- **Session ID**: 소켓 핸들 대신 고유한 ID로 유저를 식별합니다. (소켓은 재사용될 수 있으니까요)
-- **State Machine**: `Connected -> LoggedIn -> InRoom -> Disconnected`
+## 1. 학습 목표
+- **세션의 정의**: 소켓과 유저 정보를 맵핑하는 객체를 설계합니다.
+- **세션 관리자**: 전체 세션을 생성, 조회, 삭제하는 매니저 클래스를 구현합니다.
+- **상태 머신**: `Connected` -> `Authenticated` -> `InGame` 등의 상태 변화를 관리합니다.
 
-## 2. 실습 가이드
-1. **01_session_manager.cpp**: 세션 ID 발급 및 관리자(Manager) 클래스 구현.
+## 2. 핵심 이론
+### 2.1. Session ID
+소켓 핸들 값은 재사용될 수 있고, OS마다 다르기 때문에 고유한 **Session ID**를 발급하여 관리하는 것이 좋습니다.
+- `std::map<int, Session*> sessions_`: ID로 세션을 빠르게 찾기 위함.
+- `std::atomic<int> id_generator`: 쓰레드 안전하게 ID 발급.
 
-## 3. 빌드 및 실행
-```powershell
-.\build_cmake.bat
+### 2.2. 스마트 포인터와 생명주기
+세션은 여러 쓰레드에서 동시에 접근할 수 있습니다.
+- 네트워크 쓰레드: 패킷 수신.
+- 로직 쓰레드: 게임 처리.
+따라서 `std::shared_ptr`를 사용하여, 누군가 참조하고 있다면 메모리에서 해제되지 않도록 해야 합니다.
+
+## 3. 구현 가이드
+```cpp
+class SessionManager {
+public:
+    // 쓰레드 안전하게 세션 생성
+    std::shared_ptr<Session> CreateSession() {
+        LockGuard lock(mtx_);
+        int id = ++next_id_;
+        auto session = make_shared<Session>(id);
+        sessions_[id] = session;
+        return session;
+    }
+    
+    // ID로 세션 찾기
+    std::shared_ptr<Session> Find(int id) {
+        LockGuard lock(mtx_);
+        // ...
+    }
+};
 ```
+
+## 4. Common Pitfalls (흔한 실수)
+> [!WARNING]
+> **1. Deadlock (교착 상태)**
+> `SessionManager`의 락을 잡은 상태에서 `Session`의 락을 잡고, 다른 곳에선 반대로 잡으면 데드락이 걸립니다.
+> 락의 순서를 항상 일정하게 유지하거나, 락 범위를 최소화하세요.
+
+> [!TIP]
+> **2. Stale Session (상한 세션)**
+> 클라이언트는 이미 연결을 끊었는데, 서버 메모리에는 세션 객체가 남아있는 경우입니다.
+> `Keep-Alive` 패킷이나 `Heartbeat` 체크를 통해 오랫동안 응답 없는 세션을 강제로 정리해야 합니다.
+
+## 5. 실습
+1.  **01_session_manager.cpp**: 세션 ID 발급 및 조회, 상태 변경 테스트.

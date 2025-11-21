@@ -1,18 +1,52 @@
 # 18주차: 데이터베이스 연동 기초
 
 "서버 껐다 켜도 데이터가 남아있어야죠!"
-게임 서버에서 DB는 필수입니다. 이번 주에는 DB 연동의 개념을 익힙니다.
+게임 서버에서 유저 정보, 아이템, 로그 등을 저장하기 위해 DB는 필수입니다.
+이번 주에는 C++ 서버에서 DB와 통신하는 방법과 **비동기 DB 처리 패턴**을 익힙니다.
 
-## 1. 핵심 개념
-- **ODBC**: 윈도우 표준 DB 인터페이스.
-- **Connection Pool**: DB 연결을 미리 맺어두고 재사용하는 기술 (쓰레드 풀과 비슷).
-- **SQL Injection**: 해킹 방지를 위해 Prepared Statement 사용 필수.
+## 1. 학습 목표
+- **DB 연동 방식**: ODBC, Native Client 등의 차이를 이해합니다.
+- **비동기 처리**: DB 작업은 느리기 때문에 메인 로직을 막지 않도록(Non-blocking) 처리해야 함을 배웁니다.
+- **SQL Injection 방지**: 보안을 위한 Prepared Statement 사용법을 익힙니다.
 
-## 2. 실습 가이드
-- 실제 DB(MySQL 등)를 설치하는 건 너무 복잡하므로, 여기서는 **Mock DB(가짜 DB)** 클래스를 만들어 비동기 DB 처리 패턴을 익힙니다.
-1. **01_mock_db.cpp**: DB 쿼리를 요청하고 콜백으로 결과를 받는 패턴.
+## 2. 핵심 이론
+### 2.1. 동기(Synchronous) vs 비동기(Asynchronous) DB 처리
+- **동기 방식**: `query()` 함수를 호출하면 DB 응답이 올 때까지 쓰레드가 멈춥니다. (게임 렉 유발)
+- **비동기 방식**: 별도의 **DB Worker Thread**에게 일감을 던져주고(`push`), 메인 쓰레드는 하던 일을 계속합니다. 나중에 결과가 나오면 콜백으로 처리합니다.
 
-## 3. 빌드 및 실행
-```powershell
-.\build_cmake.bat
+### 2.2. Connection Pool
+DB 연결(`Connect`)은 비용이 매우 비쌉니다.
+따라서 미리 여러 개의 연결을 맺어두고(Pool), 필요할 때 빌려 쓰고 반납하는 방식을 사용합니다.
+
+## 3. 구현 가이드 (Mock DB)
+실제 DB 설치 없이 비동기 패턴을 익히기 위해 `MockDB` 클래스를 만듭니다.
+```cpp
+class MockDB {
+    // 요청 큐
+    ConcurrentQueue<Task> tasks_;
+    
+    // 워커 쓰레드
+    void Worker() {
+        while(true) {
+            Task task = tasks_.pop();
+            // 가짜 딜레이 (DB 처리 시간 시뮬레이션)
+            std::this_thread::sleep_for(10ms);
+            task.callback(result);
+        }
+    }
+};
 ```
+
+## 4. Common Pitfalls (흔한 실수)
+> [!DANGER]
+> **1. 메인 쓰레드에서 DB 접속**
+> `Connect`나 `Query`를 게임 로직 쓰레드(메인 루프)에서 직접 호출하면, 네트워크 지연 등으로 인해 서버 전체가 수 초간 멈출 수 있습니다. **절대 금지!**
+
+> [!WARNING]
+> **2. 쿼리 문자열 조합 (String Concatenation)**
+> `string query = "SELECT * FROM Users WHERE Name = '" + name + "'";`
+> 이렇게 짜면 `name`에 `'; DROP TABLE Users; --` 같은 값을 넣어 해킹할 수 있습니다 (**SQL Injection**).
+> 반드시 `Bind Parameter` 기능을 제공하는 라이브러리를 사용하세요.
+
+## 5. 실습
+1.  **01_mock_db.cpp**: 콜백 방식의 비동기 DB 쿼리 패턴 구현.
