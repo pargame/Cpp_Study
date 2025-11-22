@@ -3,6 +3,11 @@
 "자물쇠를 두 개 이상 쓸 때, 지옥이 시작됩니다."
 이번 주에는 멀티쓰레딩의 가장 무서운 적, **Deadlock(교착 상태)**을 경험하고 해결해봅니다.
 
+## 0. 미리 알면 좋은 용어 (Friendly Terms)
+- **Deadlock (데드락)**: "외나무다리 원수". 서로 비켜주길 기다리다가 아무도 못 지나가는 상태입니다.
+- **Lock Ordering (락 순서)**: "줄 서기 규칙". 자물쇠를 잠그는 순서를 정해서 데드락을 막는 방법입니다.
+
+
 ## 1. 핵심 개념
 
 ### A. Deadlock (교착 상태)
@@ -39,3 +44,21 @@
 ```powershell
 .\build_cmake.bat
 ```
+
+## Diagram
+```mermaid
+graph TD
+    T1[Thread 1] -- Holds --> M1[Mutex 1]
+    T1 -- Waits for --> M2[Mutex 2]
+    T2[Thread 2] -- Holds --> M2
+    T2 -- Waits for --> M1
+    M1 -.-> T2
+    M2 -.-> T1
+```
+
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 빌드합니다.
+2. `Debug/01_deadlock_demo.exe`를 실행하여 프로그램이 멈추는(Hang) 현상을 직접 목격합니다.
+3. `Debug/02_scoped_lock.exe`를 실행하여 `std::scoped_lock`이 어떻게 교착 상태를 해결하는지 확인합니다.
+4. `Debug/03_dining_philosophers.exe`를 실행하여 철학자 문제의 데드락 상황을 체험합니다.

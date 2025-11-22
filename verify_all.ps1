@@ -11,9 +11,9 @@ foreach ($w in $weeks) {
     $cmakeOk = Test-Path $cmake
     $buildOk = Test-Path $buildScript
     $status = "[Week$w] "
-    $status += $readmeOk ? "README OK; " : "README MISSING; "
-    $status += $srcOk ? "SRC OK ($cppCount cpp files); " : "SRC MISSING; "
-    $status += $cmakeOk ? "CMake OK; " : "CMake MISSING; "
-    $status += $buildOk ? "BuildScript OK" : "BuildScript MISSING"
+    if ($readmeOk) { $status += "README OK; " } else { $status += "README MISSING; " }
+    if ($srcOk) { $status += "SRC OK ($cppCount cpp files); " } else { $status += "SRC MISSING; " }
+    if ($cmakeOk) { $status += "CMake OK; " } else { $status += "CMake MISSING; " }
+    if ($buildOk) { $status += "BuildScript OK" } else { $status += "BuildScript MISSING" }
     Write-Output $status
 }

@@ -31,32 +31,6 @@ public:
 
 ## Theory Overview
 - Session 추상화와 가상 함수 인터페이스 설계를 설명합니다.
-- Listener의 Factory 패턴과 Service 객체의 역할을 다룹니다.
-
-## Step‑by‑Step Guide
-1. `src/ServerCore.h` 파일을 열어 `Session`, `Listener`, `Service` 클래스 구조를 분석합니다.
-2. `build_cmake.bat`로 빌드합니다.
-3. `main.cpp`를 실행하여 에코 서버가 동작하는지 확인합니다.
-4. 로그에서 `OnConnected`, `OnRecv`, `OnDisconnected` 호출 순서를 검증합니다.
-
-## Common Pitfalls
-- **가상 소멸자 누락**: 상속을 전제로 하는 `Session` 클래스는 반드시 `virtual ~Session()` 소멸자를 가져야 합니다. 그렇지 않으면 메모리 누수가 발생합니다.
-- **순환 참조**: `Session`과 `Service`가 서로 `shared_ptr`로 참조하면 메모리 누수가 생깁니다. `weak_ptr`로 해결하세요.
-
-## Diagram
-```mermaid
-classDiagram
-    class Session {
-        +Send()
-        +OnRecv()*
-        +OnConnected()*
-        +OnDisconnected()*
-    }
-    class Listener {
-        +StartAccept()
-    }
-    class Service {
-        +Run()
     }
     Service --> Listener
     Listener --> Session : creates

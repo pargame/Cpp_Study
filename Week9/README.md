@@ -39,3 +39,25 @@
 ```powershell
 .\build_cmake.bat
 ```
+
+## Diagram
+```mermaid
+sequenceDiagram
+    participant Thread1
+    participant AtomicVar
+    participant Thread2
+    Thread1->>AtomicVar: store(1, release)
+    Note right of AtomicVar: Synchronizes with
+    Thread2->>AtomicVar: load(acquire)
+    alt Value is 1
+        Thread2->>Thread2: Safe to read data
+    else Value is 0
+        Thread2->>Thread2: Retry or Wait
+    end
+```
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 빌드합니다.
+2. `Debug/01_reordering_demo.exe`를 실행하여 메모리 재배치 현상을 이론적으로 이해합니다.
+3. `Debug/02_acquire_release.exe`를 실행하여 Mutex 없는 동기화(Acquire-Release)를 확인합니다.
+4. `Debug/03_atomic_fence.exe`를 실행하여 메모리 펜스의 동작을 관찰합니다.

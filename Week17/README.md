@@ -58,6 +58,31 @@ Buffer& operator<<(Buffer& buf, int32_t value) {
 > **2. #pragma pack**
 > 구조체 패딩을 없애기 위해 `#pragma pack(push, 1)`을 쓸 수도 있지만, 이는 CPU 성능 저하를 유발할 수 있으므로 직렬화 버퍼를 쓰는 것이 더 정석입니다.
 
-## 5. 실습
-1.  **01_packet_structure.cpp**: 구조체 패딩 문제 확인.
-2.  **02_serialization.cpp**: 안전한 직렬화 버퍼 구현.
+
+## Diagram
+```mermaid
+classDiagram
+    class Packet {
+        +Header header
+        +Body body
+    }
+    class Header {
+        +uint16 size
+        +uint16 id
+    }
+    class Buffer {
+        +append(data, size)
+        +read(data, size)
+        -vector~byte~ data
+        -int write_pos
+        -int read_pos
+    }
+    Packet *-- Header
+    Packet ..> Buffer : Serialized into
+```
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 빌드합니다.
+2. `Debug/01_packet_structure.exe`를 실행하여 구조체 패딩과 사이즈를 확인합니다.
+3. `Debug/02_serialization.exe`를 실행하여 직렬화/역직렬화 과정이 올바르게 수행되는지 검증합니다.
+

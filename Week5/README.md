@@ -3,6 +3,12 @@
 "언제까지 기다려야 해? 다 되면 깨워줘!"
 이번 주에는 쓰레드끼리 효율적으로 신호를 주고받는 **Condition Variable(조건 변수)**를 배웁니다.
 
+## 0. 미리 알면 좋은 용어 (Friendly Terms)
+- **Condition Variable (조건 변수)**: "알림벨". 특정 조건이 만족될 때까지 자다가, 벨이 울리면 깨어나는 도구입니다.
+- **Spurious Wakeup (가짜 기상)**: "자다가 깬 척". 아무도 안 깨웠는데 그냥 일어나는 현상입니다. (그래서 조건을 다시 확인해야 함)
+- **Producer-Consumer (생산자-소비자)**: "요리사와 손님". 한쪽은 만들고(Notify), 한쪽은 기다렸다가 먹는(Wait) 패턴입니다.
+
+
 ## 1. 핵심 개념
 
 ### A. Polling vs Signaling
@@ -43,3 +49,26 @@ cv.wait(lock, []{ return !queue.empty(); }); // 큐가 비어있지 않을 때�
 ```powershell
 .\build_cmake.bat
 ```
+
+## Diagram
+```mermaid
+sequenceDiagram
+    participant Producer
+    participant Queue
+    participant Consumer
+    Producer->>Queue: push(data)
+    Producer->>Consumer: notify_one()
+    Note right of Consumer: Wakes up
+    Consumer->>Queue: pop()
+    Consumer->>Consumer: Process data
+    alt Queue Empty
+        Consumer->>Consumer: wait()
+        Note right of Consumer: Sleeps
+    end
+```
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 빌드합니다.
+2. `Debug/01_condition_variable.exe`를 실행하여 `wait`와 `notify`의 기본 동작을 확인합니다.
+3. `Debug/02_producer_consumer.exe`를 실행하여 생산자-소비자 패턴의 데이터 흐름을 관찰합니다.
+4. `Debug/03_spurious_wakeup.exe`를 실행하여 조건 검사 없는 `wait`의 위험성을 확인합니다.

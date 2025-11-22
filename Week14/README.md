@@ -29,3 +29,21 @@ Blocking 모드에서는 데이터가 올 때까지 멈췄지만, Non-blocking �
 ```powershell
 .\build_cmake.bat
 ```
+
+## Diagram
+```mermaid
+flowchart TD
+    A[Start Loop] --> B[recv()]
+    B --> C{Result?}
+    C -->|Success| D[Process Data]
+    C -->|WSAEWOULDBLOCK| E[Do Other Work]
+    C -->|0 or Error| F[Close Socket]
+    D --> A
+    E --> A
+```
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 빌드합니다.
+2. `Debug/01_nonblocking_server.exe`를 실행합니다.
+3. 클라이언트로 접속하여 메시지를 보냅니다.
+4. 서버 콘솔에서 `WSAEWOULDBLOCK` 로그가 반복적으로 찍히는지(Busy Waiting) 확인합니다.

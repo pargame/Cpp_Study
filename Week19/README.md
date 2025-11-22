@@ -53,5 +53,22 @@ public:
 > 클라이언트는 이미 연결을 끊었는데, 서버 메모리에는 세션 객체가 남아있는 경우입니다.
 > `Keep-Alive` 패킷이나 `Heartbeat` 체크를 통해 오랫동안 응답 없는 세션을 강제로 정리해야 합니다.
 
-## 5. 실습
-1.  **01_session_manager.cpp**: 세션 ID 발급 및 조회, 상태 변경 테스트.
+
+## Diagram
+```mermaid
+stateDiagram-v2
+    [*] --> Connected : Accept
+    Connected --> Authenticated : Login Success
+    Connected --> Disconnected : Login Fail
+    Authenticated --> InGame : Enter Room
+    InGame --> Authenticated : Leave Room
+    Authenticated --> Disconnected : Logout
+    InGame --> Disconnected : Connection Lost
+    Disconnected --> [*]
+```
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 빌드합니다.
+2. `Debug/01_session_manager.exe`를 실행합니다.
+3. 콘솔 로그를 통해 세션 생성(ID 발급) → 상태 변경(Login/InGame) → 세션 종료 및 정리 과정을 확인합니다.
+

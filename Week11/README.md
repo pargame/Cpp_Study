@@ -37,3 +37,21 @@
 ```powershell
 .\build_cmake.bat
 ```
+
+## Diagram
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+    Note over Client, Server: 3-Way Handshake
+    Client->>Server: SYN
+    Server->>Client: SYN + ACK
+    Client->>Server: ACK
+    Note over Client, Server: Connection Established
+```
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 빌드합니다.
+2. `Debug/01_winsock_init.exe`를 실행하여 Winsock 라이브러리 초기화 성공 여부를 확인합니다.
+3. `Debug/02_ip_address.exe`를 실행하여 문자열 IP 변환 결과를 확인합니다.
+4. `Debug/03_simple_socket.exe`를 실행하여 실제 외부 서버(Google DNS)와의 연결을 테스트합니다.

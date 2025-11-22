@@ -3,6 +3,11 @@
 "쓰레드를 매번 만들었다 지웠다 하는 건 너무 비싸요!"
 이번 주에는 멀티쓰레딩의 꽃, **쓰레드 풀**을 직접 만들어봅니다.
 
+## 0. 미리 알면 좋은 용어 (Friendly Terms)
+- **Thread Pool (쓰레드 풀)**: "인력 사무소". 일꾼(쓰레드)들을 미리 뽑아놓고 대기시키는 곳입니다.
+- **Task Queue (작업 큐)**: "일감 바구니". 해야 할 일들을 쌓아두는 곳입니다. 일꾼들이 여기서 하나씩 꺼내갑니다.
+
+
 ## 1. 핵심 개념
 
 ### A. 쓰레드 생성 비용
@@ -40,3 +45,22 @@
 ```powershell
 .\build_cmake.bat
 ```
+
+## Diagram
+```mermaid
+graph LR
+    User[User Thread] -- Enqueue Task --> Q[Task Queue]
+    Q -- Dequeue Task --> W1[Worker Thread 1]
+    Q -- Dequeue Task --> W2[Worker Thread 2]
+    Q -- Dequeue Task --> W3[Worker Thread 3]
+    W1 -- Execute --> R1[Result]
+    W2 -- Execute --> R2[Result]
+    W3 -- Execute --> R3[Result]
+    style Q fill:#f9f,stroke:#333,stroke-width:2px
+```
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 빌드합니다.
+2. `Debug/01_thread_safe_queue.exe`를 실행하여 멀티쓰레드 환경에서 큐가 안전하게 동작하는지 확인합니다.
+3. `Debug/02_simple_thread_pool.exe`를 실행하여 쓰레드 풀의 초기화 및 종료 과정을 관찰합니다.
+4. `Debug/03_using_thread_pool.exe`를 실행하여 실제 작업을 제출하고 처리되는 순서를 확인합니다.

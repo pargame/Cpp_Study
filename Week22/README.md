@@ -44,6 +44,24 @@ struct Session {
 > `WSASend`에 넘긴 버퍼도 전송이 완료될 때까지 유효해야 합니다.
 > 지역 변수(Local Variable) 버퍼를 넘기면 함수가 끝나면서 사라지므로 절대 안 됩니다.
 
-## 4. 실습
-1.  **01_iocp_echo.cpp**: 에코 서버 구현.
-2.  **02_iocp_pitfalls.cpp**: 생명주기 관리 실수 예제 (보충).
+
+## Diagram
+```mermaid
+sequenceDiagram
+    participant MainThread
+    participant IOCP
+    participant WorkerThread
+    MainThread->>IOCP: CreateIoCompletionPort(Socket)
+    MainThread->>IOCP: WSARecv(Overlapped)
+    Note right of IOCP: Async Operation Pending...
+    IOCP-->>WorkerThread: GetQueuedCompletionStatus() returns
+    WorkerThread->>WorkerThread: Process Data (Echo)
+    WorkerThread->>IOCP: WSASend(Overlapped)
+```
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 빌드합니다.
+2. `Debug/01_iocp_echo.exe`를 실행합니다.
+3. `Week12/Debug/02_EchoClient.exe`를 여러 개 실행하여 동시 접속 및 에코 동작을 테스트합니다.
+4. `Debug/02_iocp_pitfalls.exe`를 실행하여 세션 종료 시의 메모리 오류(Use-After-Free) 시나리오를 확인합니다.
+

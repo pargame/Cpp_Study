@@ -59,7 +59,25 @@ for (SOCKET s : connected_clients) {
 > **2. FD_SETSIZE 제한**
 > 윈도우의 `select`는 기본적으로 64개의 소켓만 관리할 수 있습니다. (`winsock2.h` 헤더 포함 전 `#define FD_SETSIZE 1024` 등으로 늘릴 수 있음)
 
-## 5. 실습 및 테스트
-1.  **빌드**: `build_cmake.bat` 실행.
-2.  **서버 실행**: `.\Debug\01_ChatServer.exe`
-3.  **클라이언트 실행**: `Week12`의 `EchoClient.exe`를 2~3개 실행하여 서로 대화가 되는지 확인합니다.
+
+## Diagram
+```mermaid
+sequenceDiagram
+    participant ClientA
+    participant Server
+    participant ClientB
+    participant ClientC
+    ClientA->>Server: Send "Hello"
+    Server->>Server: Iterate Clients
+    par Broadcast
+        Server->>ClientB: Send "Hello"
+        Server->>ClientC: Send "Hello"
+    end
+```
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 빌드합니다.
+2. `Debug/01_ChatServer.exe`를 실행합니다.
+3. 터미널 3개를 열고 `Week12/Debug/02_EchoClient.exe`를 각각 실행합니다.
+4. 한 클라이언트에서 메시지를 입력하면 나머지 두 클라이언트에게 전달되는지 확인합니다.
+

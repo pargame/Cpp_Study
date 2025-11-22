@@ -56,6 +56,10 @@ public:
 > `broadcast` 함수에서 메시지(`std::string`)를 값으로 전달하면 매번 복사가 일어납니다.
 > `const std::string&` (const reference)를 사용하여 복사 비용을 줄이세요.
 
-## 5. 실습 가이드
-1.  **01_refactored_server.cpp**: 리팩토링된 코드를 분석합니다.
-2.  **직접 해보기**: 기존 Week 15 코드를 보면서 직접 클래스로 나누어 보세요.
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 빌드합니다.
+2. `Debug/01_refactored_server.exe`를 실행합니다.
+3. `Week12/Debug/02_EchoClient.exe`를 실행하여 접속 테스트를 진행합니다.
+4. 서버 코드를 보며 `ChatServer` 클래스가 어떻게 `Session` 객체를 관리하는지 분석합니다.
+

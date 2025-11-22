@@ -42,25 +42,39 @@ timer.async_wait([](const asio::error_code& e) {
 1.  **01_timer_sync.cpp**: 동기 타이머 (Blocking).
 2.  **02_timer_async.cpp**: 비동기 타이머 (Non-blocking).
 
+
 ## Theory Overview
-- Boost.Asio의 Proactor 모델과 io_context 동작 원리를 설명합니다.
-- 비동기 타이머와 콜백 메커니즘을 이해합니다.
+- **Proactor Pattern**: Asio의 핵심 디자인 패턴으로, 비동기 작업의 완료 통지를 처리하는 구조를 설명합니다.
+- **io_context**: 모든 I/O 서비스의 중추 역할을 하는 실행 컨텍스트(Event Loop)의 동작 원리를 다룹니다.
+- **Async Timer**: `deadline_timer`와 비동기 대기(`async_wait`)를 통해 콜백 메커니즘을 익힙니다.
 
 ## Step-by-Step Guide
-1. `setup_asio.bat` 실행하여 헤더를 다운로드합니다.
-2. `build_cmake.bat` 로 프로젝트를 빌드합니다.
-3. `Debug\01_timer_sync.exe` 와 `Debug\02_timer_async.exe` 를 실행해 동작을 확인합니다.
-4. 로그 출력으로 콜백 호출 시점을 확인합니다.
+1. `setup_asio.bat`를 실행하여 Boost.Asio(Standalone) 헤더를 다운로드합니다.
+2. `build_cmake.bat`를 실행하여 빌드합니다.
+3. `Debug/01_timer_sync.exe`를 실행하여 동기 대기(Blocking)의 특성을 확인합니다.
+4. `Debug/02_timer_async.exe`를 실행하여 비동기 대기(Non-blocking)와 콜백 호출 순서를 관찰합니다.
 
 ## Common Pitfalls
-- **io_context.run() 블로킹**: 작업이 없으면 즉시 반환합니다. `executor_work_guard` 로 유지하거나 지속적인 작업을 예약하세요.
-- **싱글 vs 멀티 스레드**: `io_context.run()`을 여러 스레드에서 호출하면 멀티스레드 서버가 됩니다. 동기화 필요성을 인지하세요.
+> [!IMPORTANT]
+> **1. io_context.run()의 블로킹**
+> `io_context.run()`은 등록된 비동기 작업이 없으면 즉시 리턴하고 종료됩니다.
+> 서버가 계속 실행되게 하려면 `asio::executor_work_guard`를 사용하여 작업이 없어도 루프가 유지되도록 해야 합니다.
+
+> [!WARNING]
+> **2. 싱글 쓰레드 vs 멀티 쓰레드**
+> `io_context.run()`을 호출하는 쓰레드가 하나라면 싱글 쓰레드 서버가 되어 동기화가 필요 없습니다.
+> 하지만 여러 쓰레드에서 `run()`을 호출하면(Thread Pool), 핸들러가 병렬로 실행되므로 **Strand**나 **Mutex**로 동기화해야 합니다.
 
 ## Diagram
 ```mermaid
 sequenceDiagram
-    participant Main
-    participant Asio
-    Main->>Asio: async_wait(timer)
-    Asio-->>Main: timer expired callback
+    participant MainThread
+    participant io_context
+    participant TimerSystem
+    MainThread->>TimerSystem: timer.async_wait(Callback)
+    Note right of MainThread: Returns immediately
+    MainThread->>io_context: run()
+    Note right of io_context: Event Loop Start
+    TimerSystem-->>io_context: Time Expired Event
+    io_context->>MainThread: Invoke Callback()
 ```

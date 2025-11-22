@@ -3,6 +3,12 @@
 벌써 3주차입니다! 시간이 참 빠르죠?
 지난 주에 "글자가 뒤죽박죽 섞이는 현상"을 보셨을 겁니다. 이번 주에는 그걸 해결하는 **동기화(Synchronization)**를 배웁니다.
 
+## 0. 미리 알면 좋은 용어 (Friendly Terms)
+- **Mutex (뮤텍스)**: "화장실 열쇠". 열쇠가 하나뿐이라 한 명만 들어갈 수 있게 해주는 도구입니다.
+- **Race Condition (경쟁 조건)**: "새치기". 서로 먼저 하려고 다투다가 결과가 엉망이 되는 상황입니다.
+- **Critical Section (임계 영역)**: "화장실 칸". 한 번에 한 명만 들어가야 하는 코드 영역입니다.
+
+
 ## 1. 핵심 개념
 
 ### A. 경쟁 조건 (Race Condition)
@@ -61,3 +67,26 @@ mtx.unlock(); // 실행 안 됨 -> 영원히 잠김
 ```
 
 실행 파일은 `Week3/build/Debug` 폴더에 생성됩니다.
+
+## Diagram
+
+```mermaid
+sequenceDiagram
+    participant ThreadA
+    participant Mutex
+    participant ThreadB
+    ThreadA->>Mutex: lock()
+    Note right of Mutex: Locked by A
+    ThreadB->>Mutex: lock()
+    Note right of ThreadB: Blocked (Waiting)
+    ThreadA->>Mutex: unlock()
+    Note right of Mutex: Unlocked
+    ThreadB->>Mutex: Acquired Lock
+    Note right of Mutex: Locked by B
+```
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 빌드합니다.
+2. `Debug/01_race_condition.exe`를 실행하여 데이터 레이스로 인한 잘못된 결과를 확인합니다.
+3. `Debug/02_mutex_guard.exe`를 실행하여 Mutex 적용 후 올바른 결과(200000)가 나오는지 확인합니다.
+4. `Debug/03_thread_safe_list.exe`를 실행하여 리스트 보호 로직을 검증합니다.

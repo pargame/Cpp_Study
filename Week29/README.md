@@ -38,26 +38,51 @@ Week29/
 .\build_cmake.bat
 ```
 
-## Theory Overview
-- Layered Architecture (Network, Logic, Data)와 각 계층의 역할을 설명합니다.
-- 재사용 가능한 네트워크 엔진과 게임 로직 분리의 중요성을 다룹니다.
 
-## Step‑by‑Step Guide
-1. 폴더 구조를 확인하고 `ServerCore`, `GameServer` 모듈을 이해합니다.
-2. `main.cpp`에서 서버 시작/종료 흐름을 분석합니다.
-3. `build_cmake.bat`로 프로젝트를 빌드합니다.
-4. 실행하여 기본 골격이 정상적으로 동작하는지 확인합니다.
+## Theory Overview
+- **Layered Architecture**: 소프트웨어를 유사한 관심사(Concern)를 가진 계층으로 나누는 아키텍처 패턴입니다.
+- **Dependency Rule**: 상위 계층은 하위 계층을 의존할 수 있지만, 하위 계층은 상위 계층을 의존하면 안 된다는 원칙을 설명합니다.
+- **Component Separation**: 네트워크 엔진(`ServerCore`)과 게임 컨텐츠(`GameServer`)를 분리하여 재사용성을 높이는 방법을 다룹니다.
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 전체 솔루션을 빌드합니다.
+2. `src/ServerCore` 폴더를 열어 네트워크 라이브러리의 구조를 파악합니다.
+3. `src/GameServer` 폴더를 열어 컨텐츠 코드가 어떻게 분리되어 있는지 확인합니다.
+4. `Debug/GameServer.exe`를 실행하여 서버가 정상적으로 구동되는지 확인합니다.
 
 ## Common Pitfalls
-- **계층 경계 위반**: Network Layer에서 비즈니스 로직을 처리하면 안 됩니다. 각 계층의 역할을 명확히 분리하세요.
-- **조급한 구현**: 아키텍처 설계가 확정되기 전에 코드를 작성하면 나중에 대규모 리팩토링이 필요합니다.
+> [!WARNING]
+> **1. 계층 경계 위반 (Layer Violation)**
+> `ServerCore`(하위 계층)에서 `GameServer`(상위 계층)의 헤더를 포함하거나 함수를 호출하면 안 됩니다.
+> 이렇게 되면 순환 의존성이 생겨 컴파일이 불가능하거나 유지보수가 매우 어려워집니다.
+> -> 필요한 경우 **인터페이스(Interface)**나 **콜백(Callback)**을 사용하세요.
+
+> [!TIP]
+> **2. 조급한 구현 (Premature Coding)**
+> 전체적인 아키텍처와 데이터 흐름을 설계하지 않고 코딩부터 시작하면, 나중에 구조를 바꾸기 위해 엄청난 비용을 치르게 됩니다.
+> 종이와 펜으로 클래스 다이어그램을 먼저 그려보세요.
 
 ## Diagram
 ```mermaid
-flowchart TB
-    A[Network Layer] --> B[Logic Layer]
-    B --> C[Data Layer]
-    A -.Session, Listener.- A
-    B -.PacketHandler, RoomManager.- B
-    C -.DBConnection.- C
+classDiagram
+    direction TB
+    class GameServer {
+        +main()
+        +GameSession
+        +RoomManager
+    }
+    class ServerCore {
+        +IocpCore
+        +Session
+        +Listener
+        +Service
+    }
+    class DBConnection {
+        +Connect()
+        +Query()
+    }
+    
+    GameServer --> ServerCore : Uses
+    GameServer --> DBConnection : Uses
+    ServerCore ..> GameServer : Callback / Interface
 ```

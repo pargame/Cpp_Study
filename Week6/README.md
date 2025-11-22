@@ -3,6 +3,12 @@
 "쓰레드가 끝날 때까지 기다리는 건 `join`으로 되는데, **결과값(리턴값)**은 어떻게 받죠?"
 이번 주에는 쓰레드로부터 값을 받아오는 우아한 방법들을 배웁니다.
 
+## 0. 미리 알면 좋은 용어 (Friendly Terms)
+- **Future (퓨처)**: "교환권". 나중에 실제 값으로 바꿀 수 있는 티켓입니다.
+- **Promise (프로미스)**: "약속 어음". 나중에 값을 채워주겠다고 약속하는 객체입니다.
+- **Async (어싱크)**: "비동기 심부름". 다른 쓰레드에게 일을 시키고, 결과 교환권(Future)을 받아오는 함수입니다.
+
+
 ## 1. 핵심 개념
 
 ### A. `std::future` & `std::promise`
@@ -42,3 +48,22 @@ std::async(std::launch::async, []{ ... }); // 임시 객체 소멸!
 ```powershell
 .\build_cmake.bat
 ```
+
+## Diagram
+```mermaid
+sequenceDiagram
+    participant MainThread
+    participant AsyncThread
+    MainThread->>AsyncThread: std::async(func)
+    Note right of AsyncThread: Running...
+    MainThread->>MainThread: Do other work
+    MainThread->>AsyncThread: future.get()
+    AsyncThread-->>MainThread: Return Result
+    Note right of MainThread: Blocked until result
+```
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 빌드합니다.
+2. `Debug/01_promise_future.exe`를 실행하여 수동으로 값을 전달하는 과정을 확인합니다.
+3. `Debug/02_async_task.exe`를 실행하여 `std::async`의 편리함과 리턴값 처리 방식을 익힙니다.
+4. `Debug/03_shared_future.exe`를 실행하여 하나의 결과를 여러 쓰레드가 공유하는 패턴을 확인합니다.

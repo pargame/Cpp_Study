@@ -3,6 +3,11 @@
 "Mutex는 너무 무거워요. 더 가벼운 건 없나요?"
 이번 주에는 락(Lock) 없이도 쓰레드 안전하게 변수를 다루는 **Atomic(원자적) 연산**을 배웁니다.
 
+## 0. 미리 알면 좋은 용어 (Friendly Terms)
+- **Atomic (아토믹)**: "원자". 더 이상 쪼갤 수 없는 최소 단위입니다. 중간에 누가 끼어들 수 없습니다.
+- **Lock-free (락 프리)**: "열쇠 없이 문 열기". 자물쇠(Mutex)를 쓰지 않고도 안전하게 데이터를 공유하는 고급 기술입니다.
+
+
 ## 1. 핵심 개념
 
 ### A. 원자성 (Atomicity)
@@ -39,3 +44,23 @@
 ```powershell
 .\build_cmake.bat
 ```
+
+## Diagram
+```mermaid
+sequenceDiagram
+    participant ThreadA
+    participant AtomicVar
+    participant ThreadB
+    ThreadA->>AtomicVar: fetch_add(1)
+    Note right of AtomicVar: Atomic Op
+    ThreadB->>AtomicVar: fetch_add(1)
+    Note right of AtomicVar: Atomic Op
+    AtomicVar-->>ThreadA: Return old val
+    AtomicVar-->>ThreadB: Return old val
+```
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 빌드합니다.
+2. `Debug/01_atomic_counter.exe`를 실행하여 `atomic`과 `mutex`의 성능 차이를 비교합니다.
+3. `Debug/02_cas_loop.exe`를 실행하여 CAS(Compare-And-Swap) 루프가 어떻게 동작하는지 확인합니다.
+4. `Debug/03_spinlock.exe`를 실행하여 Spinlock의 동작과 CPU 점유율을 관찰합니다.

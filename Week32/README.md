@@ -34,26 +34,44 @@ for(int i=0; i<100; ++i) {
 1.  **DummyClient/**: 부하 테스트용 클라이언트.
 2.  **테스트**: 서버와 클라이언트를 실행하여 부하 테스트 진행.
 
-## Theory Overview
-- Dummy Client 구현과 Stress Test 방법론을 설명합니다.
-- 서버의 동시 접속자 수와 처리량 한계를 측정하는 방법을 다룹니다.
 
-## Step‑by‑Step Guide
-1. `DummyClient/` 폴더에서 클라이언트 코드를 분석합니다.
-2. `build_cmake.bat`로 서버와 클라이언트를 모두 빌드합니다.
-3. 서버를 먼저 실행합니다.
-4. Dummy Client를 실행해 100명의 동시 접속을 테스트합니다.
-5. 작업 관리자에서 CPU/메모리 사용량을 모니터링합니다.
+## Theory Overview
+- **Dummy Client**: 서버에 부하를 주기 위해 수백~수천 개의 연결을 시뮬레이션하는 테스트 클라이언트 구현법을 다룹니다.
+- **Stress Testing**: 동시 접속자 수(CCU)와 처리량(TPS)을 측정하여 서버의 한계를 파악하는 방법론을 설명합니다.
+- **Monitoring**: 작업 관리자나 성능 모니터를 통해 CPU, 메모리, 네트워크 사용량을 관측하는 법을 학습합니다.
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 서버와 더미 클라이언트를 빌드합니다.
+2. `Debug/GameServer.exe`를 실행합니다.
+3. `Debug/DummyClient.exe`를 실행하여 100~500명의 유저가 접속하는 상황을 연출합니다.
+4. 작업 관리자(Task Manager)를 열어 `GameServer.exe`의 CPU 점유율과 메모리 변화를 관찰합니다.
 
 ## Common Pitfalls
-- **비현실적인 테스트**: 로컬 환경에서만 테스트하면 네트워크 지연이나 패킷 손실을 확인할 수 없습니다. 가능하면 외부 서버로 테스트하세요.
-- **메모리 누수 경고**: 부하 테스트 후 메모리 사용량이 계속 증가한다면 메모리 누수가 있는 것입니다. Valgrind 등의 도구로 분석하세요.
+> [!WARNING]
+> **1. 로컬 테스트의 한계**
+> 로컬호스트(127.0.0.1)에서 테스트하면 네트워크 지연(Latency)과 패킷 손실이 거의 없어 실제 환경과 다릅니다.
+> 가능하면 다른 PC나 클라우드 서버에서 테스트하여 실제 네트워크 환경을 모사하세요.
+
+> [!TIP]
+> **2. 메모리 누수 확인**
+> 부하 테스트를 1시간 이상 돌려놓고 메모리 사용량이 계속 증가한다면 누수(Leak)가 있는 것입니다.
+> Visual Studio의 진단 도구(Diagnostic Tools)나 Valgrind를 사용하여 누수 지점을 찾아내세요.
 
 ## Diagram
 ```mermaid
 flowchart LR
-    A[Server Running] --> B[DummyClient Connects]
-    B --> C[Stress Test]
-    C --> D[Monitor CPU/Memory]
-    D --> E[Analyze Results]
+    subgraph Test Environment
+        Server[Game Server]
+        Dummy[Dummy Client Bot]
+    end
+    subgraph Monitoring
+        TaskMgr[Task Manager]
+        PerfMon[Performance Monitor]
+    end
+    
+    Dummy -- 1. Connect (x100) --> Server
+    Dummy -- 2. Send Random Packets --> Server
+    Server -- 3. Process & Echo --> Dummy
+    TaskMgr -.-> Server : Measure CPU/RAM
+    PerfMon -.-> Server : Measure Network I/O
 ```

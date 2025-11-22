@@ -2,6 +2,12 @@
 
 축하합니다! 개발 환경 구축에 성공하셨습니다. 이제 본격적으로 C++ 멀티쓰레딩을 위한 기초 체력을 다져봅시다.
 
+## 0. 미리 알면 좋은 용어 (Friendly Terms)
+- **Smart Pointer (스마트 포인터)**: "자동 청소부". 내가 어지럽힌 메모리를 알아서 치워주는 똑똑한 포인터입니다.
+- **Lambda (람다)**: "일회용 함수". 이름 짓기 귀찮을 때 즉석에서 만들어 쓰는 함수 조각입니다.
+- **RAII (Resource Acquisition Is Initialization)**: "빌리면 반납한다". 자원을 얻는 순간(생성)과 반납하는 순간(소멸)을 묶어서 관리하는 C++의 핵심 원칙입니다.
+
+
 ## 1. 왜 Modern C++인가?
 멀티쓰레딩 환경에서는 **메모리 관리**가 가장 큰 골칫덩어리입니다. 쓰레드 A가 쓰고 있는 객체를 쓰레드 B가 지워버린다면? 바로 프로그램이 뻗어버리죠(Crash).
 C++11부터 도입된 **Smart Pointer**와 **Lambda**, 그리고 C++20의 **jthread**는 이런 문제를 훨씬 안전하고 우아하게 해결해줍니다.
@@ -102,3 +108,39 @@ std::thread t([]{
 
 > **Tip**: 탭(Tab) 키를 누르면 자동 완성이 되며, 계속 누르면 가능한 파일들이 순환됩니다.
 
+
+## Diagram
+
+
+```mermaid
+classDiagram
+    class unique_ptr {
+        +get()
+        +reset()
+        +release()
+        -T* ptr
+    }
+    class shared_ptr {
+        +get()
+        +use_count()
+        -T* ptr
+        -ControlBlock* cb
+    }
+    class ControlBlock {
+        +ref_count
+        +weak_count
+    }
+    class Resource {
+        +DoSomething()
+    }
+    unique_ptr --> Resource : owns
+    shared_ptr --> ControlBlock : shares
+    ControlBlock --> Resource : manages
+```
+
+## Step-by-Step Guide
+1. `setup_env.bat`를 실행하여 컴파일러와 CMake 경로를 설정합니다.
+2. `build_cmake.bat`를 실행하여 예제 코드를 빌드합니다.
+3. `Debug/01_SmartPointers.exe`를 실행하여 포인터 생명주기 로그를 확인합니다.
+4. `Debug/02_Lambdas.exe`를 실행하여 캡처 방식에 따른 차이를 관찰합니다.
+5. `Debug/03_Jthread.exe`를 실행하여 쓰레드 자동 종료(Join)를 확인합니다.

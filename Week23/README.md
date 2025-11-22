@@ -43,5 +43,22 @@ IOCP에서 `WSASend`는 비동기입니다.
 > `WSARecv`/`WSASend`가 `WSA_IO_PENDING`이 아닌 `0`을 리턴하면 "즉시 완료"된 것입니다.
 > 이 경우 Completion Port에 큐잉이 되느냐 안 되느냐는 `SetFileCompletionNotificationModes` 설정에 따라 다릅니다. (기본값은 큐잉 됨)
 
-## 4. 실습
-1.  **01_iocp_chat_basic.cpp**: 채팅 서버 구현.
+
+## Diagram
+```mermaid
+graph TD
+    ClientA[Client A] -- Send Msg --> Server
+    Server -- Lock Session List --> List[Session List]
+    List -- Iterate --> SessionB[Session B]
+    List -- Iterate --> SessionC[Session C]
+    SessionB -- Async Send --> ClientB[Client B]
+    SessionC -- Async Send --> ClientC[Client C]
+    Server -- Unlock --> List
+```
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 빌드합니다.
+2. `Debug/01_iocp_chat_basic.exe`를 실행합니다.
+3. 여러 개의 클라이언트(`Week12/Debug/02_EchoClient.exe`)를 실행하여 접속합니다.
+4. 한 클라이언트가 메시지를 보내면 다른 모든 클라이언트에게 전달되는지 확인합니다.
+

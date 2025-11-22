@@ -33,3 +33,23 @@ Blocking I/O는 1:1밖에 못 하지만, **Multiplexing(다중화)** 기술을 �
 ```powershell
 .\build_cmake.bat
 ```
+
+## Diagram
+```mermaid
+flowchart TD
+    A[Start Loop] --> B{fd_set Reset}
+    B --> C[Add Sockets to Set]
+    C --> D[select()]
+    D -->|Timeout| B
+    D -->|Event| E{Check Sockets}
+    E -->|Listen Sock| F[Accept Client]
+    E -->|Client Sock| G[Recv Data]
+    F --> B
+    G --> B
+```
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 빌드합니다.
+2. `Debug/01_select_server.exe`를 실행합니다.
+3. 여러 개의 터미널에서 `Week12`의 `EchoClient.exe`를 실행하여 접속합니다.
+4. 한 클라이언트가 보낸 메시지가 다른 클라이언트들에게 전달되는지 확인합니다.

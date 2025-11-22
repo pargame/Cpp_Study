@@ -32,3 +32,18 @@
 ```powershell
 .\build_cmake.bat
 ```
+
+## Diagram
+```mermaid
+graph LR
+    App[Application Threads] -- Log Msg --> Q[Thread-Safe Queue]
+    Q -- Dequeue --> Logger[Logger Thread]
+    Logger -- Write --> File[Log File]
+    style Q fill:#f9f,stroke:#333,stroke-width:2px
+```
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 빌드합니다.
+2. `Debug/01_sync_logger.exe`를 실행하여 동기 로깅의 속도(느림)를 체감합니다.
+3. `Debug/02_async_logger.exe`를 실행하여 비동기 로깅의 구조를 확인합니다.
+4. `Debug/03_logger_test.exe`를 실행하여 다수 쓰레드에서의 성능과 안정성을 테스트합니다.

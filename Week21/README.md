@@ -35,5 +35,20 @@
 > IOCP 워커 쓰레드는 몇 개가 적당할까요?
 > 보통 **CPU 코어 수 * 2** 또는 **코어 수 + 1**을 권장합니다. 너무 많으면 컨텍스트 스위칭 비용이 커집니다.
 
-## 5. 실습
-1.  **01_iocp_basic.cpp**: 네트워크 없이 IOCP 큐에 작업을 넣고 빼는 기본 동작 실습.
+
+## Diagram
+```mermaid
+flowchart TD
+    App[Application] -- 1. Async I/O Request --> OS[Operating System]
+    OS -- 2. Operation Complete --> CP[Completion Port]
+    CP -- 3. Queue Completion Packet --> CQ[Completion Queue]
+    WT[Worker Thread] -- 4. GetQueuedCompletionStatus --> CQ
+    CQ -- 5. Dequeue Packet --> WT
+    WT -- 6. Process Result --> App
+```
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 빌드합니다.
+2. `Debug/01_iocp_basic.exe`를 실행합니다.
+3. 콘솔에서 메인 쓰레드가 작업을 큐에 넣고(`PostQueuedCompletionStatus`), 워커 쓰레드가 이를 꺼내 처리하는 과정을 확인합니다.
+

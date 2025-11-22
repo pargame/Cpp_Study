@@ -42,3 +42,23 @@
 # 터미널 2
 .\build\Debug\02_EchoClient.exe
 ```
+
+## Diagram
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+    Client->>Server: connect()
+    Server->>Server: accept()
+    Client->>Server: send("Hello")
+    Server->>Server: recv() (Blocked until data arrives)
+    Server->>Client: send("Hello")
+    Client->>Client: recv()
+```
+
+## Step-by-Step Guide
+1. `build_cmake.bat`를 실행하여 빌드합니다.
+2. 터미널을 두 개 엽니다.
+3. 첫 번째 터미널에서 `Debug/01_EchoServer.exe`를 실행하여 서버를 대기시킵니다.
+4. 두 번째 터미널에서 `Debug/02_EchoClient.exe`를 실행하여 서버에 접속하고 메시지를 보냅니다.
+5. 서버가 메시지를 그대로 돌려주는지(Echo) 확인합니다.
