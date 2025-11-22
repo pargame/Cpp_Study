@@ -75,15 +75,10 @@ C++20에 추가된 `std::jthread`는 소멸자가 호출될 때 자동으로 `jo
 ## 5. 빌드 및 실행
 **중요**: 터미널을 새로 열었다면 먼저 루트 폴더(`E:\repos\C++_Study`)의 `setup_env.bat`를 실행해주세요. (CMake 경로 설정)
 
-### 방법 A: CMake 사용 (자동 스크립트)
-가장 추천하는 방법입니다. 환경 설정부터 빌드까지 한 번에 해줍니다.
+### 빌드 방법 (CMake 사용)
+환경 설정부터 빌드까지 한 번에 해줍니다.
 ```powershell
 .\build_cmake.bat
-```
-
-### 방법 B: 수동 빌드 (CMake 없이)
-```powershell
-.\build_manual.bat
 ```
 
 ## 6. Diagram

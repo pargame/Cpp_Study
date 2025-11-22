@@ -37,7 +37,7 @@ cl /Bv
 echo.
 echo [Build] Compiling main.cpp...
 :: /std:c++latest for C++23 support, /EHsc for exception handling
-cl /EHsc /std:c++latest main.cpp
+cl /EHsc /std:c++latest /Fe:HelloThread.exe main.cpp
 if %errorlevel% neq 0 (
     echo [ERROR] Compilation failed.
     pause
