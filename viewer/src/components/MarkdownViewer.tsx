@@ -114,14 +114,15 @@ const applyStandaloneQuoteStyling = (raw: string): string => {
       continue;
     }
 
-    const quoteMatch = /^"([^"`]+)"$/.exec(trimmed);
+    const quoteMatch = /^"([^"\r\n]+)"$/.exec(trimmed);
     if (!quoteMatch) {
       continue;
     }
 
+    const innerText = quoteMatch[1];
     const leadingWhitespace = line.match(/^\s*/)?.[0] ?? '';
     const trailingWhitespace = line.match(/\s*$/)?.[0] ?? '';
-    lines[i] = `${leadingWhitespace}_“${quoteMatch[1]}”_${trailingWhitespace}`;
+    lines[i] = `${leadingWhitespace}_"${innerText}"_${trailingWhitespace}`;
   }
 
   return lines.join('\n');
@@ -133,7 +134,12 @@ let mermaidSingletonPromise: Promise<MermaidModule> | null = null;
 const getMermaid = async () => {
   if (!mermaidSingletonPromise) {
     mermaidSingletonPromise = import('mermaid').then((module) => {
-      module.default.initialize({ startOnLoad: false, theme: 'dark' });
+      module.default.initialize({ 
+        startOnLoad: false, 
+        theme: 'dark',
+        securityLevel: 'strict',
+        fontFamily: 'ui-sans-serif, system-ui, sans-serif'
+      });
       return module;
     });
   }

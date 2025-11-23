@@ -9,6 +9,15 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-markdown': ['@markdoc/markdoc', 'react-syntax-highlighter'],
+          'vendor-mermaid': ['mermaid']
+        }
+      }
+    }
   }
 });

@@ -5,43 +5,43 @@ import MarkdownViewer from './components/MarkdownViewer';
 import SourceList from './components/SourceList';
 import CodeViewer from './components/CodeViewer';
 import { weeks, type WeekMeta, type WeekSourceFile } from './data/weeks.generated';
+import useCachedTextResource from './hooks/useCachedTextResource';
 
 const SHOULD_CACHE_RESPONSES = import.meta.env.MODE !== 'development';
-
-const isAbortError = (error: unknown): error is DOMException =>
-  error instanceof DOMException && error.name === 'AbortError';
-
-const asErrorMessage = (error: unknown, fallback: string) => (error instanceof Error ? error.message : fallback);
 
 const App = () => {
   const [query, setQuery] = useState('');
   const [selectedWeek, setSelectedWeek] = useState<WeekMeta | null>(weeks[0] ?? null);
-  const [markdown, setMarkdown] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [selectedSource, setSelectedSource] = useState<WeekSourceFile | null>(null);
-  const [sourceContent, setSourceContent] = useState('');
-  const [sourceLoading, setSourceLoading] = useState(false);
-  const [sourceError, setSourceError] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [weekReloadToken, setWeekReloadToken] = useState(0);
-  const [sourceReloadToken, setSourceReloadToken] = useState(0);
   const markdownCacheRef = useRef<Map<string, string>>(new Map());
   const sourceCacheRef = useRef<Map<string, string>>(new Map());
 
-  const handleWeekRetry = () => {
-    if (!selectedWeek) return;
-    markdownCacheRef.current.delete(selectedWeek.path);
-    setError(null);
-    setWeekReloadToken((token) => token + 1);
-  };
+  const {
+    data: markdown,
+    loading,
+    error,
+    retry: retryMarkdown
+  } = useCachedTextResource({
+    key: selectedWeek?.path ?? null,
+    cacheRef: markdownCacheRef,
+    shouldCache: SHOULD_CACHE_RESPONSES,
+    enabled: Boolean(selectedWeek),
+    errorMessage: selectedWeek ? `${selectedWeek.id} README를 불러오지 못했습니다.` : 'README를 불러오지 못했습니다.'
+  });
 
-  const handleSourceRetry = () => {
-    if (!selectedSource) return;
-    sourceCacheRef.current.delete(selectedSource.path);
-    setSourceError(null);
-    setSourceReloadToken((token) => token + 1);
-  };
+  const {
+    data: sourceContent,
+    loading: sourceLoading,
+    error: sourceError,
+    retry: retrySource
+  } = useCachedTextResource({
+    key: selectedSource?.path ?? null,
+    cacheRef: sourceCacheRef,
+    shouldCache: SHOULD_CACHE_RESPONSES,
+    enabled: Boolean(selectedSource),
+    errorMessage: selectedSource ? `${selectedSource.name} 파일을 불러오지 못했습니다.` : '소스코드를 불러오지 못했습니다.'
+  });
 
   const filteredWeeks = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -55,120 +55,13 @@ const App = () => {
   }, [query]);
 
   useEffect(() => {
-    if (!selectedWeek) {
-      setMarkdown('');
-      setLoading(false);
-      return;
-    }
-
-    const targetWeek = selectedWeek;
-    const cacheKey = targetWeek.path;
-    setError(null);
-
-    const cached = SHOULD_CACHE_RESPONSES ? markdownCacheRef.current.get(cacheKey) : undefined;
-    if (cached) {
-      setMarkdown(cached);
-      setLoading(false);
-      return;
-    }
-
-    const controller = new AbortController();
-    let canceled = false;
-    setLoading(true);
-
-    fetch(cacheKey, { signal: controller.signal })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`${targetWeek.id} README를 불러오지 못했습니다.`);
-        }
-        return response.text();
-      })
-      .then((text) => {
-        if (canceled) return;
-        if (SHOULD_CACHE_RESPONSES) {
-          markdownCacheRef.current.set(cacheKey, text);
-        }
-        setMarkdown(text);
-      })
-      .catch((err: unknown) => {
-        if (canceled || isAbortError(err)) return;
-        setError(asErrorMessage(err, `${targetWeek.id} README를 불러오지 못했습니다.`));
-      })
-      .finally(() => {
-        if (!canceled) {
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      canceled = true;
-      controller.abort();
-    };
-  }, [selectedWeek, weekReloadToken]);
-
-  useEffect(() => {
     if (!selectedWeek || !selectedWeek.sources.length) {
       setSelectedSource(null);
-      setSourceContent('');
-      setSourceError(null);
       setIsDrawerOpen(false);
       return;
     }
     setSelectedSource(selectedWeek.sources[0]);
   }, [selectedWeek]);
-
-  useEffect(() => {
-    if (!selectedSource) {
-      setSourceContent('');
-      setSourceError(null);
-      setSourceLoading(false);
-      return;
-    }
-
-    const targetSource = selectedSource;
-    const cacheKey = targetSource.path;
-    setSourceError(null);
-
-    const cached = SHOULD_CACHE_RESPONSES ? sourceCacheRef.current.get(cacheKey) : undefined;
-    if (cached) {
-      setSourceContent(cached);
-      setSourceLoading(false);
-      return;
-    }
-
-    const controller = new AbortController();
-    let canceled = false;
-    setSourceLoading(true);
-
-    fetch(cacheKey, { signal: controller.signal })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`${targetSource.name} 파일을 불러오지 못했습니다.`);
-        }
-        return response.text();
-      })
-      .then((text) => {
-        if (canceled) return;
-        if (SHOULD_CACHE_RESPONSES) {
-          sourceCacheRef.current.set(cacheKey, text);
-        }
-        setSourceContent(text);
-      })
-      .catch((err: unknown) => {
-        if (canceled || isAbortError(err)) return;
-        setSourceError(asErrorMessage(err, `${targetSource.name} 파일을 불러오지 못했습니다.`));
-      })
-      .finally(() => {
-        if (!canceled) {
-          setSourceLoading(false);
-        }
-      });
-
-    return () => {
-      canceled = true;
-      controller.abort();
-    };
-  }, [selectedSource, sourceReloadToken]);
 
   useEffect(() => {
     if (!selectedWeek) {
@@ -181,6 +74,16 @@ const App = () => {
   }, [filteredWeeks, selectedWeek]);
 
   const hasSources = Boolean(selectedWeek?.sources.length);
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isDrawerOpen) {
+        setIsDrawerOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isDrawerOpen]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 text-slate-100">
@@ -213,7 +116,7 @@ const App = () => {
               <button
                 type="button"
                 className="mt-4 rounded-lg border border-red-400/50 px-3 py-1 text-sm font-medium text-red-100"
-                onClick={handleWeekRetry}
+                onClick={retryMarkdown}
               >
                 다시 시도
               </button>
@@ -231,6 +134,7 @@ const App = () => {
               <button
                 type="button"
                 aria-expanded={isDrawerOpen}
+                aria-label="C++ 소스 코드 보기"
                 onClick={() => hasSources && setIsDrawerOpen(true)}
                 disabled={!hasSources}
                 className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
@@ -271,6 +175,7 @@ const App = () => {
             <button
               type="button"
               onClick={() => setIsDrawerOpen(false)}
+              aria-label="소스 코드 서랍 닫기"
               className="rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-slate-500"
             >
               닫기
@@ -291,7 +196,7 @@ const App = () => {
                 isLoading={sourceLoading}
                 error={sourceError}
                 content={sourceContent}
-                onRetry={handleSourceRetry}
+                onRetry={retrySource}
               />
             </div>
           </div>
