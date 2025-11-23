@@ -1,10 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import SearchInput from './components/SearchInput';
 import WeekList from './components/WeekList';
 import MarkdownViewer from './components/MarkdownViewer';
 import SourceList from './components/SourceList';
 import CodeViewer from './components/CodeViewer';
 import { weeks, type WeekMeta, type WeekSourceFile } from './data/weeks.generated';
+
+const SHOULD_CACHE_RESPONSES = import.meta.env.MODE !== 'development';
+
+const isAbortError = (error: unknown): error is DOMException =>
+  error instanceof DOMException && error.name === 'AbortError';
+
+const asErrorMessage = (error: unknown, fallback: string) => (error instanceof Error ? error.message : fallback);
 
 const App = () => {
   const [query, setQuery] = useState('');
@@ -17,6 +24,24 @@ const App = () => {
   const [sourceLoading, setSourceLoading] = useState(false);
   const [sourceError, setSourceError] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [weekReloadToken, setWeekReloadToken] = useState(0);
+  const [sourceReloadToken, setSourceReloadToken] = useState(0);
+  const markdownCacheRef = useRef<Map<string, string>>(new Map());
+  const sourceCacheRef = useRef<Map<string, string>>(new Map());
+
+  const handleWeekRetry = () => {
+    if (!selectedWeek) return;
+    markdownCacheRef.current.delete(selectedWeek.path);
+    setError(null);
+    setWeekReloadToken((token) => token + 1);
+  };
+
+  const handleSourceRetry = () => {
+    if (!selectedSource) return;
+    sourceCacheRef.current.delete(selectedSource.path);
+    setSourceError(null);
+    setSourceReloadToken((token) => token + 1);
+  };
 
   const filteredWeeks = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -24,7 +49,7 @@ const App = () => {
       return weeks;
     }
     return weeks.filter((week) => {
-      const haystack = `${week.id} ${week.title} ${week.summary}`.toLowerCase();
+      const haystack = `${week.id} ${week.title}`.toLowerCase();
       return haystack.includes(normalized);
     });
   }, [query]);
@@ -32,21 +57,54 @@ const App = () => {
   useEffect(() => {
     if (!selectedWeek) {
       setMarkdown('');
+      setLoading(false);
       return;
     }
-    setLoading(true);
+
+    const targetWeek = selectedWeek;
+    const cacheKey = targetWeek.path;
     setError(null);
-    fetch(selectedWeek.path)
+
+    const cached = SHOULD_CACHE_RESPONSES ? markdownCacheRef.current.get(cacheKey) : undefined;
+    if (cached) {
+      setMarkdown(cached);
+      setLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    let canceled = false;
+    setLoading(true);
+
+    fetch(cacheKey, { signal: controller.signal })
       .then((response) => {
         if (!response.ok) {
-          throw new Error(`${selectedWeek.id} README를 불러오지 못했습니다.`);
+          throw new Error(`${targetWeek.id} README를 불러오지 못했습니다.`);
         }
         return response.text();
       })
-      .then((text) => setMarkdown(text))
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [selectedWeek]);
+      .then((text) => {
+        if (canceled) return;
+        if (SHOULD_CACHE_RESPONSES) {
+          markdownCacheRef.current.set(cacheKey, text);
+        }
+        setMarkdown(text);
+      })
+      .catch((err: unknown) => {
+        if (canceled || isAbortError(err)) return;
+        setError(asErrorMessage(err, `${targetWeek.id} README를 불러오지 못했습니다.`));
+      })
+      .finally(() => {
+        if (!canceled) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      canceled = true;
+      controller.abort();
+    };
+  }, [selectedWeek, weekReloadToken]);
 
   useEffect(() => {
     if (!selectedWeek || !selectedWeek.sources.length) {
@@ -63,21 +121,54 @@ const App = () => {
     if (!selectedSource) {
       setSourceContent('');
       setSourceError(null);
+      setSourceLoading(false);
       return;
     }
-    setSourceLoading(true);
+
+    const targetSource = selectedSource;
+    const cacheKey = targetSource.path;
     setSourceError(null);
-    fetch(selectedSource.path)
+
+    const cached = SHOULD_CACHE_RESPONSES ? sourceCacheRef.current.get(cacheKey) : undefined;
+    if (cached) {
+      setSourceContent(cached);
+      setSourceLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    let canceled = false;
+    setSourceLoading(true);
+
+    fetch(cacheKey, { signal: controller.signal })
       .then((response) => {
         if (!response.ok) {
-          throw new Error(`${selectedSource.name} 파일을 불러오지 못했습니다.`);
+          throw new Error(`${targetSource.name} 파일을 불러오지 못했습니다.`);
         }
         return response.text();
       })
-      .then((text) => setSourceContent(text))
-      .catch((err: Error) => setSourceError(err.message))
-      .finally(() => setSourceLoading(false));
-  }, [selectedSource]);
+      .then((text) => {
+        if (canceled) return;
+        if (SHOULD_CACHE_RESPONSES) {
+          sourceCacheRef.current.set(cacheKey, text);
+        }
+        setSourceContent(text);
+      })
+      .catch((err: unknown) => {
+        if (canceled || isAbortError(err)) return;
+        setSourceError(asErrorMessage(err, `${targetSource.name} 파일을 불러오지 못했습니다.`));
+      })
+      .finally(() => {
+        if (!canceled) {
+          setSourceLoading(false);
+        }
+      });
+
+    return () => {
+      canceled = true;
+      controller.abort();
+    };
+  }, [selectedSource, sourceReloadToken]);
 
   useEffect(() => {
     if (!selectedWeek) {
@@ -88,16 +179,6 @@ const App = () => {
       setSelectedWeek(filteredWeeks[0] ?? null);
     }
   }, [filteredWeeks, selectedWeek]);
-
-  useEffect(() => {
-    if (typeof document === 'undefined') {
-      return;
-    }
-    document.body.style.overflow = isDrawerOpen ? 'hidden' : '';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isDrawerOpen]);
 
   const hasSources = Boolean(selectedWeek?.sources.length);
 
@@ -132,10 +213,7 @@ const App = () => {
               <button
                 type="button"
                 className="mt-4 rounded-lg border border-red-400/50 px-3 py-1 text-sm font-medium text-red-100"
-                onClick={() => {
-                  setError(null);
-                  setSelectedWeek((current: WeekMeta | null) => (current ? { ...current } : current));
-                }}
+                onClick={handleWeekRetry}
               >
                 다시 시도
               </button>
@@ -178,12 +256,12 @@ const App = () => {
         />
       )}
       <aside
-        className={`fixed inset-y-0 right-0 z-40 w-full max-w-[90vw] border-l border-slate-800/80 bg-slate-950/95 shadow-2xl transition-transform duration-300 ease-in-out md:max-w-[82vw] lg:max-w-[74vw] xl:max-w-[68vw] 2xl:max-w-[60vw] ${
+        className={`fixed inset-y-0 right-0 z-40 w-full max-w-[90vw] overflow-hidden border-l border-slate-800/80 bg-slate-950/95 shadow-2xl transition-transform duration-300 ease-in-out md:max-w-[82vw] lg:max-w-[74vw] xl:max-w-[68vw] 2xl:max-w-[60vw] ${
           isDrawerOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         aria-hidden={!isDrawerOpen}
       >
-        <div className="flex h-full flex-col">
+        <div className="flex h-full flex-col overflow-hidden">
           <header className="flex items-start justify-between gap-4 border-b border-slate-800/80 p-6">
             <div>
               <p className="text-[11px] uppercase tracking-[0.4em] text-slate-500">Source Drawer</p>
@@ -198,7 +276,7 @@ const App = () => {
               닫기
             </button>
           </header>
-          <div className="flex flex-1 flex-col gap-4 p-6 lg:grid lg:grid-cols-[320px,1fr]">
+          <div className="flex flex-1 flex-col gap-4 overflow-hidden p-6 lg:grid lg:grid-cols-[320px,1fr]">
             <div className="max-h-[65vh] overflow-y-auto pr-2">
               <SourceList
                 files={selectedWeek?.sources ?? []}
@@ -207,8 +285,14 @@ const App = () => {
                 disabled={sourceLoading}
               />
             </div>
-            <div className="min-h-[60vh]">
-              <CodeViewer file={selectedSource} isLoading={sourceLoading} error={sourceError} content={sourceContent} />
+            <div className="min-h-[60vh] overflow-y-auto">
+              <CodeViewer
+                file={selectedSource}
+                isLoading={sourceLoading}
+                error={sourceError}
+                content={sourceContent}
+                onRetry={handleSourceRetry}
+              />
             </div>
           </div>
         </div>

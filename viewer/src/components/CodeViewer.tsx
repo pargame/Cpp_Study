@@ -8,6 +8,7 @@ type CodeViewerProps = {
   isLoading: boolean;
   error: string | null;
   content: string;
+  onRetry?: () => void;
 };
 
 const fallbackTitle = '소스코드를 선택하세요';
@@ -21,14 +22,20 @@ const CopyButton = ({ text }: { text: string }) => {
     return () => clearTimeout(timer);
   }, [copied]);
 
+  const handleCopy = async () => {
+    if (!text || typeof navigator === 'undefined' || !navigator.clipboard) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+    } catch (copyError) {
+      console.error('클립보드 복사에 실패했습니다.', copyError);
+    }
+  };
+
   return (
     <button
       type="button"
-      onClick={async () => {
-        if (!text) return;
-        await navigator.clipboard.writeText(text);
-        setCopied(true);
-      }}
+      onClick={handleCopy}
       className="rounded-full border border-slate-600 px-3 py-1 text-xs font-medium text-slate-200 transition hover:border-indigo-400 hover:text-white"
     >
       {copied ? '복사됨' : '복사'}
@@ -36,7 +43,7 @@ const CopyButton = ({ text }: { text: string }) => {
   );
 };
 
-const CodeViewer = ({ file, isLoading, error, content }: CodeViewerProps) => {
+const CodeViewer = ({ file, isLoading, error, content, onRetry }: CodeViewerProps) => {
   if (!file) {
     return (
       <div className="flex h-full flex-col items-center justify-center rounded-3xl border border-dashed border-slate-700/60 bg-slate-900/40 p-6 text-sm text-slate-400">
@@ -50,6 +57,15 @@ const CodeViewer = ({ file, isLoading, error, content }: CodeViewerProps) => {
       <div className="rounded-3xl border border-red-500/40 bg-red-900/30 p-4 text-sm text-red-200">
         <p className="font-semibold">소스코드를 불러오지 못했습니다.</p>
         <p className="mt-2">{error}</p>
+        {onRetry && (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="mt-4 rounded-full border border-red-300/60 px-4 py-1 text-xs font-semibold text-red-100 transition hover:border-red-200"
+          >
+            다시 시도
+          </button>
+        )}
       </div>
     );
   }

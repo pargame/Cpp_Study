@@ -1,17 +1,17 @@
 # Prerequisites
 *.d
 
-# Compiled Object files
+# Compiled object files
 *.slo
 *.lo
 *.o
 *.obj
 
-# Precompiled Headers
+# Precompiled headers
 *.gch
 *.pch
 
-# Compiled Dynamic libraries
+# Compiled dynamic libraries
 *.so
 *.dylib
 *.dll
@@ -20,7 +20,7 @@
 *.mod
 *.smod
 
-# Compiled Static libraries
+# Compiled static libraries
 *.lai
 *.la
 *.a
@@ -31,7 +31,7 @@
 *.out
 *.app
 
-# CMake
+# CMake / build tooling
 CMakeCache.txt
 CMakeFiles
 CMakeScripts
@@ -41,9 +41,65 @@ install_manifest.txt
 *.cmake
 !Week1/CMakeLists.txt
 !CMakeLists.txt
+CMakeUserPresets.json
+CMakePresets.json
+Testing/
+**/build/
+**/Build/
+**/Debug/
+**/Release/
 
-# Visual Studio
+# Build directories
+build/
+bin/
+lib/
+out/
+dist/
+coverage/
+
+# Cache / temp artifacts
+*.cache
+*.tmp
+*.temp
+*.log
+*.tlog
+*.ilk
+*.pdb
+*.idb
+
+# Node / Vite viewer
+node_modules/
+viewer/node_modules/
+viewer/dist/
+viewer/.vite/
+viewer/.turbo/
+viewer/.cache/
+viewer/**/*.tsbuildinfo
+
+# Package manager locks (viewer)
+viewer/yarn.lock
+viewer/pnpm-lock.yaml
+viewer/package-lock.json
+
+# Logs & reports
+*.err
+*.orig
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Env files
+.env
+.env.*
+.env.local
+.env.development.local
+.env.production.local
+.env.test.local
+
+# IDEs / tooling
 .vs/
+.idea/
 *.user
 *.suo
 *.ipch
@@ -54,17 +110,7 @@ install_manifest.txt
 *.cachefile
 *.fd
 *.bak
-*.tlog
-*.log
-*.ilk
-*.pdb
 
-# Build Directories
-build/
-bin/
-lib/
-out/
-
-# OS
+# OS metadata
 .DS_Store
 Thumbs.db

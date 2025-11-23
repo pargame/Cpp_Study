@@ -42,6 +42,105 @@ const slugify = (value?: ReactNode): string => {
     .replace(/-+/g, '-');
 };
 
+const removeLeadingHeadingMarkdown = (raw: string): string => {
+  const sanitized = raw.replace(/^\uFEFF/, '');
+  const lines = sanitized.split(/\r?\n/);
+  const firstContentIndex = lines.findIndex((line) => line.trim().length > 0);
+  if (firstContentIndex !== 0) {
+    return sanitized;
+  }
+  const leading = lines[0].trim();
+  const isSingleH1 = /^ {0,3}#(?!#)\s+.+$/.test(leading);
+  if (!isSingleH1) {
+    return sanitized;
+  }
+  const remaining = lines.slice(1);
+  while (remaining.length && remaining[0].trim() === '') {
+    remaining.shift();
+  }
+  return remaining.join('\n');
+};
+
+const SOFT_BREAK_BLOCK_PATTERN = /^(#{1,6}\s|[-*+]\s|\d+\.\s|\s*$)/;
+
+const applySoftBreaks = (raw: string): string => {
+  const lines = raw.split('\n');
+  let inFence = false;
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    const trimmed = line.trimStart();
+
+    if (/^(```|~~~)/.test(trimmed)) {
+      inFence = !inFence;
+      continue;
+    }
+
+    if (inFence || trimmed.length === 0) {
+      continue;
+    }
+
+    const next = lines[i + 1];
+    if (next === undefined) {
+      continue;
+    }
+    const nextTrimmed = next.trimStart();
+    if (SOFT_BREAK_BLOCK_PATTERN.test(nextTrimmed)) {
+      continue;
+    }
+
+    if (!line.endsWith('  ')) {
+      lines[i] = `${line}  `;
+    }
+  }
+
+  return lines.join('\n');
+};
+
+const applyStandaloneQuoteStyling = (raw: string): string => {
+  const lines = raw.split('\n');
+  let inFence = false;
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    if (/^(```|~~~)/.test(trimmed)) {
+      inFence = !inFence;
+      continue;
+    }
+
+    if (inFence || trimmed.length === 0) {
+      continue;
+    }
+
+    const quoteMatch = /^"([^"`]+)"$/.exec(trimmed);
+    if (!quoteMatch) {
+      continue;
+    }
+
+    const leadingWhitespace = line.match(/^\s*/)?.[0] ?? '';
+    const trailingWhitespace = line.match(/\s*$/)?.[0] ?? '';
+    lines[i] = `${leadingWhitespace}_“${quoteMatch[1]}”_${trailingWhitespace}`;
+  }
+
+  return lines.join('\n');
+};
+
+type MermaidModule = typeof import('mermaid');
+let mermaidSingletonPromise: Promise<MermaidModule> | null = null;
+
+const getMermaid = async () => {
+  if (!mermaidSingletonPromise) {
+    mermaidSingletonPromise = import('mermaid').then((module) => {
+      module.default.initialize({ startOnLoad: false, theme: 'dark' });
+      return module;
+    });
+  }
+  const module = await mermaidSingletonPromise;
+  return module.default;
+};
+
 const MARKDOC_CONFIG = {
   nodes: {
     fence: {
@@ -77,10 +176,9 @@ const MermaidDiagram = ({ code }: { code: string }) => {
   useEffect(() => {
     let canceled = false;
     const renderDiagram = async () => {
-      const { default: mermaid } = await import('mermaid');
-      mermaid.initialize({ startOnLoad: false, theme: 'dark' });
-      if (!containerRef.current || canceled) return;
       try {
+        const mermaid = await getMermaid();
+        if (!containerRef.current || canceled) return;
         const { svg } = await mermaid.render(`mermaid-${reactId}`, code);
         if (!canceled && containerRef.current) {
           containerRef.current.innerHTML = svg;
@@ -104,7 +202,7 @@ const MermaidDiagram = ({ code }: { code: string }) => {
   return (
     <div
       ref={containerRef}
-      className="mermaid-diagram my-6 rounded-2xl border border-white/10 bg-slate-950/70 p-4 text-slate-100 shadow-[0_12px_40px_rgba(2,6,23,0.45)]"
+      className="mermaid-diagram my-6 flex items-center justify-center rounded-2xl border border-white/10 bg-slate-950/70 p-4 text-slate-100 shadow-[0_12px_40px_rgba(2,6,23,0.45)]"
     />
   );
 };
@@ -141,16 +239,7 @@ const Heading = ({ children, id, level }: HeadingProps) => {
   const Tag = (`h${Math.min(level, 6)}` as keyof JSX.IntrinsicElements);
   const headingId = id || slugify(children) || undefined;
   return (
-    <Tag id={headingId} className="group relative scroll-mt-24">
-      {headingId && (
-        <a
-          href={`#${headingId}`}
-          className="absolute -left-6 top-1/2 hidden -translate-y-1/2 text-accent opacity-0 transition group-hover:opacity-100 md:inline"
-          aria-label="제목 앵커"
-        >
-          #
-        </a>
-      )}
+    <Tag id={headingId} className="scroll-mt-24">
       {children}
     </Tag>
   );
@@ -166,7 +255,8 @@ const MarkdownViewer = ({ content, isLoading, title }: MarkdownViewerProps) => {
   const renderedMarkdown = useMemo(() => {
     if (!content?.trim()) return null;
     try {
-      const ast = Markdoc.parse(content);
+      const normalized = applySoftBreaks(applyStandaloneQuoteStyling(removeLeadingHeadingMarkdown(content)));
+      const ast = Markdoc.parse(normalized);
       const transformed = Markdoc.transform(ast, MARKDOC_CONFIG);
       return Markdoc.renderers.react(transformed, React, {
         components: {

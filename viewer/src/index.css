@@ -116,8 +116,27 @@ body {
   margin-bottom: 1.35rem;
 }
 
+.markdown-body p + p {
+  margin-top: 1rem;
+}
+
 .markdown-body p {
   color: var(--md-text);
+  white-space: pre-line;
+}
+
+.markdown-body q {
+  font-style: italic;
+  color: #e2e8ff;
+  quotes: '“' '”' '‘' '’';
+}
+
+.markdown-body q::before {
+  content: open-quote;
+}
+
+.markdown-body q::after {
+  content: close-quote;
 }
 
 .markdown-body strong {
@@ -203,13 +222,13 @@ body {
   padding-left: 0;
 }
 
-.markdown-body ol li {
+.markdown-body ol > li {
   counter-increment: md-counter;
   padding-left: 2.4rem;
   position: relative;
 }
 
-.markdown-body ol li::before {
+.markdown-body ol > li::before {
   content: counter(md-counter) '.';
   position: absolute;
   left: 0;

@@ -43,11 +43,7 @@ const WeekList = ({ items, selectedId, onSelect, isLoading }: WeekListProps) => 
                 )}
               </div>
               <h3 className="text-sm font-semibold text-slate-100">{week.title}</h3>
-              <p className="mt-2 text-xs text-slate-400">
-                <span className="line-clamp-2 block max-h-[2.75rem] overflow-hidden text-ellipsis group-hover:text-slate-200">
-                  {week.summary}
-                </span>
-              </p>
+              {/* intentionally left blank per design (no summary) */}
             </button>
           </li>
         );
