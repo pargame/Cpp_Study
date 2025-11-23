@@ -1,3 +1,18 @@
+// Week19 - 01_session_manager.cpp
+// 세션 매니저 (Session Manager) 패턴
+//
+// 핵심 개념:
+// - Centralized Session Management: 모든 세션을 하나의 컴테이너로 관리
+// - std::map<SessionID, shared_ptr<Session>>: 빠른 검색 + 자동 메모리 관리
+// - Mutex 보호: 보드캐스트나 탐색 시 동기화 필요
+// - atomic<int> 카운터: ID 발급 (Lock-Free)
+//
+// 예상 출력:
+// Created session 0
+// Created session 1
+// Session 0 state: Connected
+// Removed session 0
+
 #include <iostream>
 #include <map>
 #include <memory>

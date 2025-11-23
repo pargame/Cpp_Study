@@ -1,3 +1,18 @@
+// Week26 - 01_asio_echo.cpp
+// Boost.Asio 비동기 에코 서버
+//
+// 핵심 개념:
+// - async_read_some(): 비동기 수신 + 람다 콜백
+// - async_write(): 비동기 송신 (buffer 전체 전송 보장)
+// - enable_shared_from_this: 콜백에서 shared_ptr 생성 (RAII)
+// - Chain Callback: do_read() -> do_write() -> do_read() 순환
+// - Proactor 패턴: 작업 완료 후 콜백 호출
+//
+// 예상 출력:
+// Server listening on 0.0.0.0:9999
+// Client connected
+// Echo: Hello Asio!
+
 #include <iostream>
 #include <memory>
 #include <utility>

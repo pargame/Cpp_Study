@@ -66,4 +66,14 @@ struct Session {
 ```
 
 ## 6. Diagram
+```mermaid
+flowchart TD
+    A[Accept Client] --> B[CreateIoCompletionPort<br/>Associate Socket]
+    B --> C[WSARecv]
+    C --> D{Worker Thread<br/>GetQueuedCompletionStatus}
+    D -->|Data Arrived| E[Process Packet]
+    E --> F[WSASend<br/>Echo Back]
+    F --> C
+    D -->|Client Disconnected| G[Close Socket<br/>Release Session]
+```
 

@@ -1,3 +1,18 @@
+// Week15 - 01_chat_server.cpp
+// 간단한 채팅 서버 (Broadcasting)
+//
+// 핵심 개념:
+// - Broadcasting: 한 클라이언트의 메시지를 모든 클라이언트에게 전송
+// - select() 기반 멀티플렉싱 (Non-blocking I/O)
+// - 메시지 형식: 텍스트 기반 (\r\n 구분자)
+// - 연결 관리: vector<SOCKET>으로 클라이언트 목록 유지
+//
+// 예상 출력:
+// [Chat Server] Listening on port 9999...
+// New user entered. Total: 1
+// Broadcasting: Hello everyone!
+// User disconnected. Total: 0
+
 #include <iostream>
 #include <vector>
 #include <string>

@@ -1,3 +1,19 @@
+// Week20 - 01_worker_pattern.cpp
+// I/O 쓰레드 vs 로직 쓰레드 분리 패턴
+//
+// 핵심 개념:
+// - I/O Thread: 패킷 수신만 담당 (블로킹 I/O)
+// - Logic Thread: 패킷 처리 담당 (CPU 작업)
+// - 분리 이유: I/O 대기 중에 로직이 멈춰서는 안 됨!
+// - ThreadSafeQueue로 연결: Producer(I/O) -> Consumer(Logic)
+//
+// 예상 출력:
+// [I/O] Received: Packet 0
+// [Logic] Processing: Packet 0
+// [I/O] Received: Packet 1
+// [Logic] Processing: Packet 1
+// ...
+
 #include <iostream>
 #include <thread>
 #include <queue>

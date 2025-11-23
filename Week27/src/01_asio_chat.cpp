@@ -1,3 +1,19 @@
+// Week27 - 01_asio_chat.cpp
+// Asio 기반 채팅 서버 (Broadcasting + Strand)
+//
+// 핵심 개념:
+// - ChatRoom: 모든 세션 관리 + 브로드캐스팅
+// - Strand: 특정 세션의 모든 콜백을 순차 실행 (Thread-Safe)
+// - std::set<shared_ptr<Session>>: 세션 목록 (join/leave)
+// - Message Queue: 비동기 Send 순서 보장
+// - RAII + shared_from_this: 안전한 생명주기 관리
+//
+// 예상 출력:
+// User joined. Total: 1
+// User joined. Total: 2
+// Broadcasting: Hello from user1
+// User left. Total: 1
+
 #include <iostream>
 #include <deque>
 #include <set>

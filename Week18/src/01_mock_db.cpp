@@ -1,3 +1,17 @@
+// Week18 - 01_mock_db.cpp
+// 가짜 데이터베이스 (Mock DB) 구현
+//
+// 핵심 개념:
+// - Mock/Stub: 실제 DB 대신 메모리로 테스트
+// - 비동기 쿠리: Worker Thread + Callback 패턴
+// - Producer-Consumer 패턴 응용
+// - 장점: 네트워크 I/O 차단 없이 로직 테스트
+//
+// 예상 출력:
+// [Main] Querying user...
+// [Callback] Result: User1 (Level 99)
+// [Callback] Result: User2 (Level 10)
+
 #include <iostream>
 #include <string>
 #include <thread>

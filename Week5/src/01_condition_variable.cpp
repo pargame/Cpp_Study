@@ -1,3 +1,21 @@
+// Week5 - 01_condition_variable.cpp
+// 조건 변수(Condition Variable) 기초
+//
+// 핵심 개념:
+// - std::condition_variable: 쓰레드 간 신호(Signal) 전달 메커니즘
+// - wait(): 조건이 만족될 때까지 대기 (락 자동 해제 -> 대기 -> 깨어나면 락 재획득)
+// - notify_one(): 대기 중인 쓰레드 하나만 깨움
+// - notify_all(): 대기 중인 모든 쓰레드 깨움
+// - Spurious Wakeup 대비: wait()는 조건을 재확인하는 람다와 함께 사용
+//
+// 예상 출력:
+// [Worker 1] Waiting for signal...
+// [Worker 2] Waiting for signal...
+// [Main] Preparing data...
+// [Main] Notify all!
+// [Worker 1] Woke up! Working...
+// [Worker 2] Woke up! Working...
+
 #include <iostream>
 #include <thread>
 #include <mutex>

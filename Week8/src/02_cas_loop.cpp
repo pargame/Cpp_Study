@@ -1,3 +1,16 @@
+// Week8 - 02_cas_loop.cpp
+// CAS (Compare-And-Swap) Loop 패턴
+//
+// 핵심 개념:
+// - CAS: 조건부 원자적 교환 (expected == current면 desired로 교체)
+// - Lock-Free 알고리즘: mutex 없이 동기화
+// - compare_exchange_weak: Spurious Failure 가능 (루프에서 사용)
+// - compare_exchange_strong: Spurious Failure 없음 (단발성 사용)
+// - Read-Modify-Write 패턴을 원자적으로 수행
+//
+// 예상 출력:
+// Final Value: 6 (Should be 6)
+
 #include <iostream>
 #include <atomic>
 #include <thread>
@@ -6,17 +19,26 @@
 std::atomic<int> value = 0;
 
 void safe_multiply(int multiplier) {
-    // value = value * multiplier; // 이건 atomic하지 않습니다! (Read -> Mul -> Write)
+    // ❌ 잘못된 방법: value *= multiplier;
+    // 이유: atomic 타입이라도 *= 연산은 (Read -> Mul -> Write) 3단계로 분리됨
+    // 중간에 다른 쓰레드가 값을 바꿀 수 있어 Race Condition 발생
     
-    int expected = value.load();
+    // ✅ CAS Loop 패턴:
+    int expected = value.load(); // 현재 값 읽기
     int desired;
     
-    // CAS Loop 패턴
     do {
+        // 1. 기대값(expected)을 바탕으로 새로운 값(desired) 계산
         desired = expected * multiplier;
-        // expected가 현재 value와 같으면 value를 desired로 바꾸고 true 리턴
-        // 다르면 expected를 현재 value로 업데이트하고 false 리턴
+        
+        // 2. compare_exchange_weak 시도:
+        //    - 성공 (value == expected): value를 desired로 변경하고 true 반환
+        //    - 실패 (value != expected): expected를 현재 value로 업데이트하고 false 반환
+        //    - Spurious Failure: 간혹 조건이 맞아도 false 반환 (하드웨어 특성)
+        //      -> 루프로 재시도하므로 문제없음
     } while (!value.compare_exchange_weak(expected, desired));
+    
+    // 루프 탈출: CAS 성공 (아무도 중간에 값을 안 바꿨음)
 }
 
 // 사실 곱셈 예제는 좀 억지스럽지만, CAS의 원리를 이해하기 좋습니다.

@@ -1,3 +1,16 @@
+// Week10 - 01_sync_logger.cpp
+// 동기식(Synchronous) 로거 성능 측정
+//
+// 핵심 개념:
+// - Synchronous Logging: 로그마다 즉시 파일 쓰기 + Mutex 잠금
+// - 장점: 구현 간단, 크래시 시 로그 유실 없음
+// - 단점: I/O 대기로 인한 성능 저하, Lock Contention
+// - Disk I/O는 매우 느림 (1ms~10ms per write)
+//
+// 예상 출력:
+// === Sync Logger Benchmark ===
+// Time: 5.2s (10,000 로그, 10 쓰레드)
+
 #include <iostream>
 #include <fstream>
 #include <mutex>

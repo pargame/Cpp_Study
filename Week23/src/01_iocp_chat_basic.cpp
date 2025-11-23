@@ -1,3 +1,18 @@
+// Week23 - 01_iocp_chat_basic.cpp
+// IOCP 기반 채팅 서버 (브로드캐스팅)
+//
+// 핵심 개념:
+// - Broadcasting: 한 세션의 메시지를 모든 세션에게 전송
+// - ChatServer 클래스: 세션 목록 관리 + Worker Thread Pool
+// - 비동기 Send 큐잉: WSASend 여러 번 호출 방지
+// - Lock Contention: 브로드캐스팅 시 vector 순회는 락 필요
+//
+// 예상 출력:
+// [Server] Started on port 9999
+// [Worker] New client connected
+// Broadcasting: Hello everyone!
+// [Worker] Client disconnected
+
 #include <iostream>
 #include <vector>
 #include <string>

@@ -96,6 +96,9 @@ void do_read() {
 ```
 
 ## 6. Diagram
+```mermaid
+sequenceDiagram
+    participant Client
     participant Session
     participant Asio
     Client->>Session: Connect

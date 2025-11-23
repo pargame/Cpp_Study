@@ -1,3 +1,20 @@
+// Week6 - 01_promise_future.cpp
+// Promise와 Future를 이용한 쓰레드 간 값 전달
+//
+// 핵심 개념:
+// - std::promise: 값을 "약속"하는 객체 (쓰기 채널)
+// - std::future: 약속된 값을 "받을" 객체 (읽기 채널)
+// - 단방향 통신: Promise(생산자) -> Future(소비자)
+// - future.get(): 블로킹 대기, 값 수령 후 future는 무효화
+// - 예외 전파: promise.set_exception()으로 예외도 전달 가능
+//
+// 예상 출력:
+// === Promise & Future Demo ===
+// [Main] Doing other work...
+// [Worker] Calculating 10 + 20...
+// [Worker] Set value: 30
+// [Main] Received result: 30
+
 #include <iostream>
 #include <thread>
 #include <future>

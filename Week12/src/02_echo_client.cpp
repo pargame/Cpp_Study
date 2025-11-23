@@ -1,3 +1,19 @@
+// Week12 - 02_echo_client.cpp
+// TCP 에코 클라이언트
+//
+// 핵심 개념:
+// - connect(): 서버에 연결 요청
+// - send()/recv(): 데이터 송수신
+// - Blocking I/O: send/recv가 완료될 때까지 대기
+// - Half-Close: shutdown(SHUT_WR)로 송신만 종료
+//
+// 예상 출력:
+// [Client] Connecting to 127.0.0.1:9999...
+// [Client] Connected!
+// [Client] Sent: Hello Server
+// [Client] Received: Hello Server
+// [Client] Disconnected.
+
 #include <iostream>
 #include <string>
 #include <winsock2.h>

@@ -1,3 +1,22 @@
+// Week12 - 01_echo_server.cpp
+// 기본 TCP 에코 서버 (Blocking I/O)
+//
+// 핵심 개념:
+// - socket(): 소켓 생성 (AF_INET=IPv4, SOCK_STREAM=TCP)
+// - bind(): IP:Port에 소켓 바인딩
+// - listen(): 연결 대기 상태로 전환 (SOMAXCONN=최대 대기열)
+// - accept(): 클라이언트 연결 수락 (블로킹)
+// - recv()/send(): 데이터 수신/송신
+// - closesocket(): 소켓 종료
+//
+// 예상 출력:
+// [Server] Listening on port 9999...
+// [Server] Client connected!
+// [Server] Received: Hello Server
+// [Server] Client disconnected.
+//
+// 클라이언트에서 보낸 메시지를 그대로 돌려보냄 (Echo)
+
 #include <iostream>
 #include <winsock2.h>
 #include <ws2tcpip.h>

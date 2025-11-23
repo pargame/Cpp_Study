@@ -95,6 +95,11 @@ void deliver(const string& msg) {
 ```
 
 ## 6. Diagram
+```mermaid
+sequenceDiagram
+    participant UserThread
+    participant Strand
+    participant Socket
     UserThread->>Strand: post(WriteMsg)
     Strand->>Strand: Push to Queue
     alt Queue was empty

@@ -1,3 +1,30 @@
+// Week4 - 03_dining_philosophers.cpp
+// 식사하는 철학자 문제 (Dining Philosophers Problem)
+//
+// 핵심 개념:
+// - 고전적인 Deadlock/Starvation 문제
+// - 5명의 철학자, 5개의 포크(mutex), 포크 2개 있어야 식사 가능
+// - Deadlock 발생 시나리오: 모두가 왼쪽 포크를 동시에 집으면 순환 대기
+// - 해결책:
+//   1. Resource Ordering: 마지막 철학자만 순서 반대로 (코드 참조)
+//   2. Chandy-Misra 알고리즘
+//   3. 동시에 집을 수 있는 철학자 수 제한
+//
+// 예상 출력 (Deadlock 발생 버전 - 주석 해제 시):
+// === Dining Philosophers Problem ===
+// Philosopher 0 is thinking...
+// Philosopher 1 is thinking...
+// ...
+// Philosopher 0 picked up left fork (0).
+// Philosopher 1 picked up left fork (1).
+// ...
+// (여기서 멈춤 - 모두가 오른쪽 포크 대기)
+//
+// 예상 출력 (해결책 적용 시):
+// Philosopher 0 picked up left fork, then right fork. Eating...
+// Philosopher 0 finished eating.
+// ...
+
 #include <iostream>
 #include <thread>
 #include <mutex>

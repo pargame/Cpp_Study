@@ -1,3 +1,16 @@
+// Week7 - 01_thread_safe_queue.cpp
+// 쓰레드 안전한 큐 (Thread-Safe Queue) 구현
+//
+// 핵심 개념:
+// - Condition Variable을 활용한 Blocking Queue
+// - std::optional<T>로 종료 신호 표현 (nullopt)
+// - done() 메서드: Graceful Shutdown 패턴
+// - Producer-Consumer 패턴의 재사용 가능한 구현
+// - FIFO 순서 보장 + 쓰레드 안전성
+//
+// 예상 출력:
+// (Week7 예제 코드에서 확인)
+
 #include <iostream>
 #include <queue>
 #include <mutex>

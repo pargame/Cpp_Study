@@ -1,3 +1,21 @@
+// Week13 - 01_select_server.cpp
+// select()를 이용한 멀티플렉싱 서버
+//
+// 핵심 개념:
+// - I/O Multiplexing: 하나의 쓰레드로 여러 소켓 동시 관리
+// - select(): 여러 소켓 중 I/O 준비된 소켓 찾기 (동기 방식)
+// - fd_set: 소켓 집합 (FD_ZERO, FD_SET, FD_ISSET 매크로)
+// - timeval: 타임아웃 설정 (nullptr이면 무한 대기)
+// - 장점: 멀티쓰레드 없이 동시접속 처리
+// - 단점: FD_SETSIZE 제한 (Windows: 64), O(n) 탐색
+//
+// 예상 출력:
+// [Select Server] Listening on port 9999...
+// New client connected! Total: 1
+// New client connected! Total: 2
+// Client disconnected.
+// ...
+
 #include <iostream>
 #include <vector>
 #include <winsock2.h>

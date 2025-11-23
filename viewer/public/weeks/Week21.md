@@ -57,4 +57,20 @@
 ```
 
 ## 6. Diagram
+```mermaid
+sequenceDiagram
+    participant App as Application Thread
+    participant OS as OS Kernel
+    participant CP as Completion Port
+    participant Worker as Worker Thread
+    
+    App->>OS: WSARecv(socket, buffer, OVERLAPPED)
+    Note right of OS: OS가 비동기로<br/>데이터 수신 시작
+    App->>App: 다른 작업 수행
+    OS->>CP: I/O 완료 통지
+    Worker->>CP: GetQueuedCompletionStatus()
+    Note right of Worker: 대기 중이던<br/>워커 쓰레드 깨어남
+    CP-->>Worker: OVERLAPPED + 결과 리턴
+    Worker->>Worker: 데이터 처리
+```
 

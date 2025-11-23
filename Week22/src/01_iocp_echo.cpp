@@ -1,3 +1,19 @@
+// Week22 - 01_iocp_echo.cpp
+// IOCP 기반 에코 서버 구현
+//
+// 핵심 개념:
+// - WSASocket + WSA_FLAG_OVERLAPPED: 비동기 I/O 가능 소켓
+// - OVERLAPPED 구조체: 비동기 작업 컨텍스트
+// - WSARecv/WSASend: 비동기 수신/송신
+// - GetQueuedCompletionStatus: 완료된 I/O 통보 대기
+// - Worker Thread Pool: CPU 코어수만큼 생성
+//
+// 예상 출력:
+// [IOCP Server] Listening on 9999...
+// [Worker] Client connected
+// [Worker] Recv completed: 12 bytes
+// [Worker] Send completed
+
 #include <iostream>
 #include <vector>
 #include <winsock2.h>

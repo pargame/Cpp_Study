@@ -1,10 +1,27 @@
+// Week2 - 03_parallel_sum.cpp
+// 병렬 처리를 통한 성능 향상 실습
+//
+// 핵심 개념:
+// - 데이터 병렬성(Data Parallelism): 큰 데이터를 쓰레드 개수만큼 분할하여 병렬 처리
+// - hardware_concurrency(): 시스템의 물리적 코어 수 확인
+// - False Sharing 회피: 각 쓰레드가 독립적인 메모리 영역(results[i])에 쓰기
+// - Amdahl's Law: 병렬화 가능한 부분만 속도 향상 (I/O, 동기화는 병목)
+//
+// 예상 출력 (8코어 CPU 기준):
+// Generating data (100000000 integers)...
+// [Single Thread] Sum: 100000000, Time: 0.15s
+// 
+// [Multi Thread] Using 8 threads...
+// [Multi Thread]  Sum: 100000000, Time: 0.025s
+// (약 6배 속도 향상 - Perfect scaling은 8배이지만 오버헤드 존재)
+
 #include <iostream>
 #include <vector>
 #include <thread>
 #include <numeric>
 #include <chrono>
 
-// 부분 합을 계산하는 함수
+// 부분 합을 계산하는 워커 함수
 void partial_sum(const std::vector<int>& v, size_t start, size_t end, long long& result) {
     long long sum = 0;
     for (size_t i = start; i < end; ++i) {
@@ -29,15 +46,18 @@ int main() {
         std::cout << "[Single Thread] Sum: " << sum << ", Time: " << diff.count() << "s\n";
     }
 
-    // 2. Multi Thread
+    // 2. Multi Thread: 데이터를 N등분하여 병렬 처리
     {
+        // hardware_concurrency(): CPU 하드웨어 쓰레드 수 (하이퍼쓰레딩 포함)
+        // 0 반환 시 정보 없음 의미 (드물게 발생)
         unsigned int num_threads = std::thread::hardware_concurrency();
-        if (num_threads == 0) num_threads = 2; // 정보 없으면 2개로 가정
+        if (num_threads == 0) num_threads = 2;
         std::cout << "\n[Multi Thread] Using " << num_threads << " threads...\n";
 
         std::vector<std::thread> threads;
-        std::vector<long long> results(num_threads); // 각 쓰레드의 결과 저장소
+        std::vector<long long> results(num_threads); // 각 쓰레드 전용 결과 저장소 (Race 없음)
 
+        // 데이터를 쓰레드 개수만큼 균등 분할
         size_t chunk_size = DATA_SIZE / num_threads;
 
         auto start = std::chrono::high_resolution_clock::now();

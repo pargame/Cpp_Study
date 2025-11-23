@@ -1,3 +1,20 @@
+// Week17 - 01_packet_structure.cpp
+// 패킷 구조체 설계 및 직렬화 기초
+//
+// 핵심 개념:
+// - PacketHeader: 크기(size) + ID(type) 필드
+// - POD (Plain Old Data) 구조체: memcpy로 직렬화 가능
+// - 주의사항:
+//   * Padding: 구조체 정렬로 인한 빈 공간 (#pragma pack)
+//   * Endianness: Little/Big Endian (htons/ntohs)
+//   * 플랫폼 의존성: 32bit vs 64bit
+//
+// 예상 출력:
+// === Packet Structure Demo ===
+// Serialized 68 bytes.
+// Received ID: 1
+// Username: user1
+
 #include <iostream>
 #include <vector>
 #include <cstring>

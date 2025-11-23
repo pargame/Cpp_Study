@@ -1,3 +1,23 @@
+// Week5 - 02_producer_consumer.cpp
+// 생산자-소비자 패턴 (Producer-Consumer Pattern)
+//
+// 핵심 개념:
+// - Bounded Buffer 문제의 고전적 해결책
+// - Condition Variable로 "큐가 비어있음" 상태를 효율적으로 대기
+// - Busy-Waiting 대신 Event-Driven 방식 (CPU 절약)
+// - notify_one() vs notify_all() 선택 기준
+//
+// 예상 출력:
+// === Producer-Consumer Demo ===
+// [Producer] Pushed 1
+// 	[Consumer] Processed 1
+// [Producer] Pushed 2
+// 	[Consumer] Processed 2
+// ...
+// [Producer] Pushed 10
+// 	[Consumer] Processed 10
+// 	[Consumer] Finished.
+
 #include <iostream>
 #include <thread>
 #include <mutex>

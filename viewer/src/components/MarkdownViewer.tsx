@@ -137,7 +137,7 @@ const getMermaid = async () => {
       module.default.initialize({ 
         startOnLoad: false, 
         theme: 'dark',
-        securityLevel: 'strict',
+        securityLevel: 'loose',
         fontFamily: 'ui-sans-serif, system-ui, sans-serif'
       });
       return module;

@@ -65,3 +65,17 @@ timer.async_wait([](const asio::error_code& e) {
 ```
 
 ## 6. Diagram
+```mermaid
+sequenceDiagram
+    participant App
+    participant io_context
+    participant OS
+    
+    App->>io_context: steady_timer.async_wait(handler)
+    Note right of io_context: Non-blocking return
+    App->>App: Do other work
+    App->>io_context: io_context.run()
+    Note over io_context: Waiting for events
+    OS-->>io_context: Timer expired
+    io_context->>App: Call handler()
+```

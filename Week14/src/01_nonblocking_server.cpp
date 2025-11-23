@@ -1,3 +1,20 @@
+// Week14 - 01_nonblocking_server.cpp  
+// Non-blocking I/O 서버
+//
+// 핵심 개념:
+// - Non-blocking Mode: I/O 호출이 즉시 리턴 (데이터 없어도 블로킹 안 됨)
+// - ioctlsocket(FIONBIO): 소켓을 Non-blocking으로 설정
+// - WSAEWOULDBLOCK: "지금 데이터 없음" 에러 (정상 상황)
+// - Busy-Waiting: 계속 폴링하므로 CPU 사용률 높음
+// - 장점: 쓰레드 없이 비동기 처리 가능
+// - 단점: CPU 낭비, 복잡한 에러 처리
+//
+// 예상 출력:
+// [Non-blocking Server] Listening on port 9999...
+// New client connected!
+// Received: Hello
+// ...
+
 #include <iostream>
 #include <vector>
 #include <winsock2.h>

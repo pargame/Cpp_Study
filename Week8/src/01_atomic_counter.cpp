@@ -1,3 +1,21 @@
+// Week8 - 01_atomic_counter.cpp
+// Atomic 연산 vs Mutex 성능 비교
+//
+// 핵심 개념:
+// - std::atomic<T>: Lock-Free 원자적 연산 (CPU 명령어 레벨)
+// - Memory Ordering: Sequential Consistency (기본값)
+// - Mutex보다 빠른 이유: Context Switch 없음, Cache Coherence Protocol 활용
+// - 적용 가능 타입: 정수, 포인터, bool (trivially copyable)
+//
+// 예상 출력:
+// === Atomic vs Mutex Performance ===
+// Unsafe (Wrong Result): 0.05s
+//   -> Result: 187432 (틀림!)
+// Mutex: 0.15s
+//   -> Result: 400000 (정확)
+// Atomic: 0.02s
+//   -> Result: 400000 (정확 + 빠름!)
+
 #include <iostream>
 #include <thread>
 #include <atomic>

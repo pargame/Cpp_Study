@@ -48,11 +48,11 @@ while(true) {
 ## 6. Diagram
 ```mermaid
 flowchart TD
-    A[Start Loop] --> B[recv()]
+    A[Start Loop] --> B["recv()"]
     B --> C{Result?}
     C -->|Success| D[Process Data]
     C -->|WSAEWOULDBLOCK| E[Do Other Work / Sleep]
-    C -->|0 or Error| F[Close Socket]
+    C -->|"0 or Error"| F[Close Socket]
     D --> A
     E --> A
 ```

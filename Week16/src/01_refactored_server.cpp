@@ -1,3 +1,18 @@
+// Week16 - 01_refactored_server.cpp
+// 객체지향으로 리팩토링한 채팅 서버
+//
+// 핵심 개념:
+// - Session 클래스: 클라이언트 1명의 상태/동작 캔슐화
+// - ChatServer 클래스: 서버 전체 로직 관리
+// - RAII 패턴: Session 소멸자에서 자동 closesocket()
+// - std::shared_ptr 관리: 메모리 누수 방지
+// - 코드 재사용성 향상
+//
+// 예상 출력:
+// [Server] Initialized.
+// [Server] New connection from 127.0.0.1
+// Broadcasting: Hello from client1
+
 #include <iostream>
 #include <vector>
 #include <string>

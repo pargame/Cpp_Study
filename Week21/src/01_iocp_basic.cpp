@@ -1,3 +1,19 @@
+// Week21 - 01_iocp_basic.cpp
+// IOCP (I/O Completion Port) 기초 개념
+//
+// 핵심 개념:
+// - IOCP: Windows의 고성능 비동기 I/O 모델
+// - CreateIoCompletionPort(): IOCP 객체 생성
+// - GetQueuedCompletionStatus(): 완료된 I/O 작업 대기 (Worker Thread)
+// - PostQueuedCompletionStatus(): 수동으로 작업 투입
+// - CompletionKey: 소켓/세션 식별자 (ULONG_PTR)
+// - OVERLAPPED: 비동기 작업 컨텍스트
+//
+// 예상 출력:
+// [Main] Posting tasks...
+// [Worker] Processed Key: 100
+// [Worker] Processed Key: 200
+
 #include <iostream>
 #include <winsock2.h>
 #include <windows.h>

@@ -1,3 +1,21 @@
+// Week24 - 01_ring_buffer.cpp
+// 링 버퍼 (Ring Buffer / Circular Buffer) 구현
+//
+// 핵심 개념:
+// - Circular Buffer: 헤드와 테일이 순환하는 배열
+// - Zero-Copy Optimization: 메모리 이동 없이 포인터만 이동
+// - TCP Stream Buffering: Partial Packet 문제 해결
+// - write(): 수신 데이터 저장
+// - peek(): 데이터 읽기 (소비 안 함)
+// - consume(): 읽은 데이터 제거
+//
+// 예상 출력:
+// === Ring Buffer Demo ===
+// Write: 10 bytes
+// Peek: Hello
+// Consumed 5 bytes
+// Available: 5 bytes
+
 #include <iostream>
 #include <vector>
 #include <algorithm>

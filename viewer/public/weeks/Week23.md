@@ -64,4 +64,19 @@ IOCP에서 `WSASend`는 비동기입니다.
 ```
 
 ## 6. Diagram
+```mermaid
+sequenceDiagram
+    participant Client_A
+    participant IOCP_Worker
+    participant SessionManager
+    participant Client_B
+    participant Client_C
+    
+    Client_A->>IOCP_Worker: Send "Hello"
+    IOCP_Worker->>SessionManager: Broadcast("Hello")
+    par Parallel Send
+        SessionManager->>Client_B: WSASend("Hello")
+        SessionManager->>Client_C: WSASend("Hello")
+    end
+```
 

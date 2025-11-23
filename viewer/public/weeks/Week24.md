@@ -67,3 +67,16 @@ struct Header {
 ```
 
 ## 6. Diagram
+```mermaid
+flowchart TD
+    A[WSARecv] --> B[Append to Ring Buffer]
+    B --> C{Enough data for Header?}
+    C -->|No| D[Wait for more data]
+    C -->|Yes| E[Read Header]
+    E --> F{Enough data for Body?}
+    F -->|No| D
+    F -->|Yes| G[Extract Packet]
+    G --> H[Process Packet]
+    H --> I[Move Read Pointer]
+    I --> C
+```
